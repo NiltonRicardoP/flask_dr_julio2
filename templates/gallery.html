@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Galeria{% endblock %}
+
+{% block body_class %}dark-theme{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1 class="display-5 text-white mb-3">Galeria de Imagens e Vídeos</h1>
+            <p class="lead text-light">Conheça um pouco mais sobre meu trabalho e eventos profissionais</p>
+        </div>
+
+        {% if items %}
+        <div class="row">
+            <div class="col-lg-12 mb-4">
+                <div class="gallery-filter text-center">
+                    <button class="btn btn-outline-light active mx-1 mb-2" data-filter="*">Todos</button>
+                    <button class="btn btn-outline-light mx-1 mb-2" data-filter=".palestras">Palestras</button>
+                    <button class="btn btn-outline-light mx-1 mb-2" data-filter=".consultorio">Consultório</button>
+                    <button class="btn btn-outline-light mx-1 mb-2" data-filter=".eventos">Eventos</button>
+                    <button class="btn btn-outline-light mx-1 mb-2" data-filter=".videos">Vídeos</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row gallery-container">
+            {% for item in items %}
+                {% if item.media_type == 'image' %}
+                    {% set category = 'palestras' %}
+                    {% if 'consult' in item.title|lower or 'consult' in item.description|lower %}
+                        {% set category = 'consultorio' %}
+                    {% elif 'event' in item.title|lower or 'event' in item.description|lower %}
+                        {% set category = 'eventos' %}
+                    {% endif %}
+
+                    <div class="col-md-4 col-sm-6 mb-4 gallery-item {{ category }}">
+                        <div class="gallery-card">
+                            <div class="gallery-image">
+                                <img src="{{ url_for('static', filename='uploads/gallery/' + item.filename) }}" alt="{{ item.title }}" class="img-fluid">
+                                <div class="gallery-overlay">
+                                    <div class="gallery-info">
+                                        <h5>{{ item.title }}</h5>
+                                        {% if item.description %}
+                                            <p>{{ item.description }}</p>
+                                        {% endif %}
+                                        <a href="{{ url_for('static', filename='uploads/gallery/' + item.filename) }}" class="btn btn-primary btn-sm gallery-popup">
+                                            <i class="fas fa-search-plus me-1"></i>Ver
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if item.caption %}
+                                <div class="gallery-caption">
+                                    <p class="text-light text-center mt-2 mb-0">{{ item.caption }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% elif item.media_type == 'video' %}
+                    <div class="col-md-6 mb-4 gallery-item videos">
+                        <div class="gallery-card">
+                            <div class="gallery-video">
+                                <div class="ratio ratio-16x9">
+                                    <video controls>
+                                        <source src="{{ url_for('static', filename='uploads/gallery/' + item.filename) }}" type="video/mp4">
+                                        Seu navegador não suporta vídeos.
+                                    </video>
+                                </div>
+                                <div class="video-info mt-2">
+                                    <h5 class="text-white">{{ item.title }}</h5>
+                                    {% if item.description %}
+                                        <p class="text-light">{{ item.description }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i> Nenhum item na galeria no momento.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/magnific-popup@1.1.0/dist/magnific-popup.css">
+<style>
+    .gallery-card {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+
+    .gallery-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .gallery-image {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .gallery-image img {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .gallery-card:hover .gallery-image img {
+        transform: scale(1.1);
+    }
+
+    .gallery-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .gallery-card:hover .gallery-overlay {
+        opacity: 1;
+    }
+
+    .gallery-info {
+        text-align: center;
+        padding: 20px;
+        color: white;
+    }
+
+    .gallery-info h5 {
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .gallery-info p {
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .gallery-filter {
+        margin-bottom: 30px;
+    }
+
+    .gallery-filter .btn {
+        margin: 0 5px;
+        border-radius: 30px;
+        padding: 8px 20px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .gallery-filter .btn.active {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+        color: white;
+    }
+
+    .gallery-video {
+        background-color: rgba(15, 23, 42, 0.5);
+        border-radius: 10px;
+        overflow: hidden;
+        padding: 10px;
+        height: 100%;
+    }
+
+    .video-info {
+        padding: 10px;
+    }
+
+    .gallery-caption {
+        padding: 10px;
+        background-color: rgba(15, 23, 42, 0.7);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/isotope-layout@3.0.6/dist/isotope.pkgd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/magnific-popup@1.1.0/dist/jquery.magnific-popup.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Isotope
+        var $grid = $('.gallery-container').isotope({
+            itemSelector: '.gallery-item',
+            layoutMode: 'fitRows'
+        });
+
+        // Filter items on button click
+        $('.gallery-filter').on('click', 'button', function() {
+            var filterValue = $(this).attr('data-filter');
+            $grid.isotope({ filter: filterValue });
+
+            // Add active class
+            $('.gallery-filter button').removeClass('active');
+            $(this).addClass('active');
+        });
+
+        // Initialize Magnific Popup
+        $('.gallery-popup').magnificPopup({
+            type: 'image',
+            gallery: {
+                enabled: true
+            },
+            zoom: {
+                enabled: true,
+                duration: 300
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Sobre{% endblock %}
+
+{% block body_class %}dark-theme{% endblock %}
+
+{% block content %}
+<section class="about-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                {% if settings.about_image %}
+                    <img src="{{ url_for('static', filename='uploads/' + settings.about_image) }}" alt="Dr. Julio Vasconcelos" class="img-fluid rounded-3 shadow">
+                {% else %}
+                    <img src="{{ url_for('static', filename='img/profile.jpg') }}" alt="Dr. Julio Vasconcelos" class="img-fluid rounded-3 shadow">
+                {% endif %}
+            </div>
+            <div class="col-md-8 mb-4">
+                <h1 class="mb-3">Dr. Julio Vasconcelos</h1>
+                <p class="lead text-content">{{ settings.about_text }}</p>
+
+                <div class="academic-section mt-4">
+                    <h3><i class="fas fa-graduation-cap me-2"></i>Formação Acadêmica</h3>
+                    <div class="text-content">
+                        {% if settings.academic_background %}
+                            {{ settings.academic_background|safe }}
+                        {% else %}
+                            <ul>
+                                <li>Psicólogo, especialista em Neuropsicologia</li>
+                                <li>Mestre em Ciências (Clínica Médica - Neurologia)</li>
+                                <li>Doutor em Saúde Mental</li>
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="professional-section mt-4">
+                    <h3><i class="fas fa-briefcase me-2"></i>Experiência Profissional</h3>
+                    <div class="text-content">
+                        {% if settings.professional_experience %}
+                            {{ settings.professional_experience|safe }}
+                        {% else %}
+                            <ul>
+                                <li>Consultório particular com atendimento a crianças, adolescentes e adultos</li>
+                                <li>Docência em cursos de graduação e pós-graduação em Psicologia</li>
+                                <li>Pesquisador na área de Neuropsicologia</li>
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="services-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Áreas de Atuação</h2>
+
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <div class="service-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3>Neuropsicologia</h3>
+                <p class="text-content">Avaliação e reabilitação neuropsicológica para crianças, adolescentes e adultos.</p>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="service-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3>Psicologia Clínica</h3>
+                <p class="text-content">Atendimento psicológico com abordagem integrativa para diversas questões emocionais e comportamentais.</p>
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <div class="service-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h3>Docência</h3>
+                <p class="text-content">Atuação como professor e palestrante em cursos de graduação e pós-graduação em Psicologia.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% block title %}Galeria{% endblock %}
+{% block content %}
+<h1 class="mb-4">Gerenciar Galeria</h1>
+
+<form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    {{ form.title.label }} {{ form.title(class="form-control mb-2") }}
+    {{ form.description.label }} {{ form.description(class="form-control mb-2") }}
+    {{ form.media_type.label }}
+    {{ form.media_type(class="form-select mb-2") }}
+    {{ form.categoria.label }} {{ form.categoria(class="form-select mb-2") }}
+
+    {{ form.media_file.label }} {{ form.media_file(class="form-control mb-2") }}
+    {{ form.submit(class="btn btn-success") }}
+</form>
+
+<hr>
+<div class="row mt-4">
+    {% for item in items %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                {% if item.media_type == 'image' %}
+                    <img src="{{ url_for('static', filename='uploads/gallery/' ~ item.filename) }}" class="img-fluid rounded shadow-sm">
+                {% elif item.media_type == 'video' %}
+                    <video controls class="w-100 shadow-sm">
+                        <source src="{{ url_for('static', filename='uploads/gallery/' ~ item.filename) }}" type="video/mp4">
+                        Seu navegador não suporta vídeos.
+                    </video>
+                {% endif %}
+                    <div class="card-body">
+                        <h5>{{ item.title }}</h5>
+                        <p>{{ item.description }}</p>
+                        <p><strong>Categoria:</strong> {{ item.categoria }}</p> {# 👈 Aqui adicionamos #}
+                        <form action="{{ url_for('admin_bp.delete_gallery_item', item_id=item.id) }}" method="POST" class="mt-2 text-center">
+                            <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                        </form>
+                    </div>
+
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

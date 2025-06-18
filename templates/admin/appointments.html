@@ -1,0 +1,125 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Agendamentos{% endblock %}
+
+{% block content %}
+
+        
+        <!-- Main Content -->
+
+            <h1 class="mb-4">Gerenciar Agendamentos</h1>
+            
+            <!-- Filter Options -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap align-items-center">
+                        <div class="me-3 mb-2">
+                            <label class="form-label mb-0 me-2">Status:</label>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('admin_bp.appointments') }}" class="btn btn-outline-primary {{ 'active' if not request.args.get('status') else '' }}">Todos</a>
+                                <a href="{{ url_for('admin_bp.appointments', status='pending') }}" class="btn btn-outline-warning {{ 'active' if request.args.get('status') == 'pending' else '' }}">Pendentes</a>
+                                <a href="{{ url_for('admin_bp.appointments', status='confirmed') }}" class="btn btn-outline-success {{ 'active' if request.args.get('status') == 'confirmed' else '' }}">Confirmados</a>
+                                <a href="{{ url_for('admin_bp.appointments', status='cancelled') }}" class="btn btn-outline-danger {{ 'active' if request.args.get('status') == 'cancelled' else '' }}">Cancelados</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Appointments Table -->
+            <div class="card shadow">
+                <div class="card-body">
+                    {% if appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Paciente</th>
+                                        <th>Contato</th>
+                                        <th>Data</th>
+                                        <th>Hora</th>
+                                        <th>Status</th>
+                                        <th>Motivo</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in appointments %}
+                                        <tr>
+                                            <td>{{ appointment.name }}</td>
+                                            <td>
+                                                <span data-bs-toggle="tooltip" data-bs-title="{{ appointment.email }}">
+                                                    <i class="fas fa-envelope"></i> E-mail
+                                                </span>
+                                                <br>
+                                                <span data-bs-toggle="tooltip" data-bs-title="{{ appointment.phone }}">
+                                                    <i class="fas fa-phone"></i> Telefone
+                                                </span>
+                                            </td>
+                                            <td>{{ appointment.date.strftime('%d/%m/%Y') }}</td>
+                                            <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                                            <td>
+                                                {% if appointment.status == 'pending' %}
+                                                    <span class="badge bg-warning">Pendente</span>
+                                                {% elif appointment.status == 'confirmed' %}
+                                                    <span class="badge bg-success">Confirmado</span>
+                                                {% elif appointment.status == 'cancelled' %}
+                                                    <span class="badge bg-danger">Cancelado</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#reasonModal{{ appointment.id }}">
+                                                    Ver Motivo
+                                                </button>
+                                                
+                                                <!-- Reason Modal -->
+                                                <div class="modal fade" id="reasonModal{{ appointment.id }}" tabindex="-1" aria-labelledby="reasonModalLabel{{ appointment.id }}" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="reasonModalLabel{{ appointment.id }}">Motivo da Consulta</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <p>{{ appointment.reason }}</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if appointment.status != 'confirmed' %}
+                                                    <a href="{{ url_for('admin_bp.update_appointment_status', id=appointment.id, status='confirmed') }}" class="btn btn-sm btn-outline-success mb-1" data-bs-toggle="tooltip" title="Confirmar">
+                                                        <i class="fas fa-check"></i>
+                                                    </a>
+                                                {% endif %}
+                                                
+                                                {% if appointment.status != 'cancelled' %}
+                                                    <a href="{{ url_for('admin_bp.update_appointment_status', id=appointment.id, status='cancelled') }}" class="btn btn-sm btn-outline-danger mb-1" data-bs-toggle="tooltip" title="Cancelar">
+                                                        <i class="fas fa-times"></i>
+                                                    </a>
+                                                {% endif %}
+                                                
+                                                {% if appointment.status != 'pending' %}
+                                                    <a href="{{ url_for('admin_bp.update_appointment_status', id=appointment.id, status='pending') }}" class="btn btn-sm btn-outline-warning mb-1" data-bs-toggle="tooltip" title="Marcar como Pendente">
+                                                        <i class="fas fa-clock"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            Nenhum agendamento encontrado.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+{% endblock %}

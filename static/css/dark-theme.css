@@ -1,0 +1,439 @@
+/* Dark Theme Styles for Dr. Julio Vasconcelos Website */
+
+body.dark-theme {
+  background-color: #050a1c;
+  color: #e2e8f0; /* Lighter text color for better readability */
+  background-image: radial-gradient(circle at 25% 25%, rgba(30, 60, 180, 0.05) 1%, transparent 10%),
+    radial-gradient(circle at 75% 75%, rgba(30, 60, 180, 0.05) 1%, transparent 10%),
+    linear-gradient(rgba(20, 30, 80, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 30, 80, 0.1) 1px, transparent 1px);
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+}
+
+/* Hero Section */
+.hero-dark {
+  padding: 80px 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+/* Updated Profile Image Styling */
+.profile-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 2rem;
+}
+
+.profile-image {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #3b82f6;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+}
+
+/* Remove any overlay styling that might be causing issues */
+.profile-overlay {
+  display: none;
+}
+
+/* Hero Section Typography */
+.hero-dark h1.name-title {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  letter-spacing: 2px;
+}
+
+.hero-dark .crp-number {
+  font-size: 1.2rem;
+  color: #3b82f6 !important;
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+
+/* Updated Specialties Styling */
+.specialties {
+  margin: 2rem 0;
+  position: relative;
+  padding: 20px 0;
+}
+
+.specialty-divider {
+  width: 60px;
+  height: 3px;
+  background: #3b82f6;
+  margin: 0 auto 1.5rem;
+  position: relative;
+  left: auto;
+  top: auto;
+  bottom: auto;
+  transform: none;
+}
+
+.specialty-title {
+  font-size: 1.3rem;
+  color: #e2e8f0;
+  margin-bottom: 0.5rem;
+  font-weight: 400;
+}
+
+/* Action Buttons */
+.action-buttons {
+  margin-top: 2rem;
+}
+
+.btn-consult {
+  background: #3b82f6;
+  border: none;
+  color: white;
+  padding: 12px 30px;
+  font-weight: 600;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-consult:hover {
+  background: #2563eb;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  text-decoration: none;
+}
+
+.btn-more {
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  background: transparent;
+  padding: 12px 30px;
+  font-weight: 600;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-more:hover {
+  background: #ffffff;
+  color: #050a1c;
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+/* Section Titles */
+.section-title {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 10px;
+  margin-bottom: 3rem;
+  color: #ffffff;
+}
+
+.section-title:after {
+  content: "";
+  position: absolute;
+  width: 50px;
+  height: 3px;
+  background-color: #3b82f6;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Info Cards */
+.info-card {
+  background-color: rgba(15, 23, 42, 0.7);
+  border-radius: 10px;
+  padding: 25px 15px;
+  text-align: center;
+  height: 100%;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.icon-container {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 20px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.icon-container i {
+  font-size: 30px;
+  color: white;
+}
+
+.info-card h3 {
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+  color: #ffffff;
+}
+
+.info-card p {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+}
+
+/* Sections */
+.about-section,
+.services-section,
+.events-section {
+  background-color: #0f172a;
+}
+
+.about-section h1,
+.about-section h2,
+.about-section h3 {
+  color: #ffffff; /* Bright white for headings */
+}
+
+.about-section p,
+.about-section li,
+.about-section .text-content {
+  color: #e2e8f0; /* Light gray for paragraph text */
+  font-size: 1.05rem; /* Slightly larger font for better readability */
+}
+
+/* Make sure academic and professional sections are readable */
+.academic-section,
+.professional-section {
+  background-color: rgba(15, 23, 42, 0.7); /* Slightly lighter background */
+  border-radius: 10px;
+  padding: 25px;
+  margin-bottom: 20px;
+}
+
+.academic-section h3,
+.professional-section h3 {
+  color: #60a5fa; /* Light blue for section headings */
+  margin-bottom: 15px;
+}
+
+/* Service Cards */
+.dark-theme .service-card {
+  background-color: #1e293b;
+  border: none;
+  border-radius: 10px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.dark-theme .service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .service-card .card-body {
+  padding: 30px 20px;
+}
+
+.dark-theme .service-card h3 {
+  margin: 15px 0;
+  font-size: 1.3rem;
+  color: white;
+}
+
+.dark-theme .service-card p {
+  color: #cbd5e1;
+}
+
+/* Event Cards */
+.event-card {
+  background-color: #1e293b;
+  border: none;
+  border-radius: 10px;
+  transition: transform 0.3s, box-shadow 0.3s;
+  overflow: hidden;
+}
+
+.event-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.event-image-wrapper {
+  height: 200px;
+  overflow: hidden;
+}
+
+.event-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.event-card .card-body {
+  padding: 20px;
+}
+
+.event-card .card-title {
+  color: #ffffff;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+}
+
+.event-card .card-text {
+  color: #cbd5e1;
+}
+
+.event-card .text-muted {
+  color: #94a3b8 !important;
+}
+
+/* Service icons should stand out */
+.service-icon {
+  color: #60a5fa; /* Light blue for icons */
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+/* Ensure lists are readable */
+.dark-theme ul,
+.dark-theme ol {
+  color: #e2e8f0;
+}
+
+.dark-theme ul li,
+.dark-theme ol li {
+  margin-bottom: 8px;
+}
+
+/* Updated Button Styling */
+.dark-theme .btn-primary {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.dark-theme .btn-primary:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+.dark-theme .btn-outline-light {
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  background: transparent;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.dark-theme .btn-outline-light:hover {
+  background-color: #ffffff;
+  color: #050a1c;
+  border-color: #ffffff;
+  transform: translateY(-2px);
+}
+
+/* Dark theme navbar */
+.dark-theme .navbar {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Dark theme footer */
+.dark-theme footer {
+  background: #0f172a;
+}
+
+/* Form styling for dark theme */
+.dark-theme .form-control,
+.dark-theme .form-select {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(15, 23, 42, 0.5);
+  color: #fff;
+  transition: all 0.3s ease;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 0.375rem;
+}
+
+.dark-theme .form-control-lg {
+  padding: 0.875rem 1.25rem;
+  font-size: 1.125rem;
+  border-radius: 0.5rem;
+}
+
+.dark-theme .form-control:focus,
+.dark-theme .form-select:focus {
+  background-color: rgba(30, 41, 59, 0.7);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+  color: #fff;
+  outline: none;
+}
+
+.dark-theme .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dark-theme .form-label {
+  color: #e2e8f0;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+/* Card styling for dark theme */
+.bg-dark-blue {
+  background-color: rgba(15, 23, 42, 0.7);
+}
+
+.bg-darker {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+}
+
+/* Invalid feedback for form validation */
+.dark-theme .invalid-feedback {
+  color: #f87171;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-image {
+    width: 150px;
+    height: 150px;
+  }
+
+  .hero-dark h1.name-title {
+    font-size: 2.2rem;
+  }
+
+  .specialty-title {
+    font-size: 1.1rem;
+  }
+
+  .hero-dark {
+    padding: 60px 0;
+  }
+
+  .btn-consult,
+  .btn-more {
+    padding: 10px 25px;
+    font-size: 0.9rem;
+    margin: 5px;
+  }
+}

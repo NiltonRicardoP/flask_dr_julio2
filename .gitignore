@@ -1,0 +1,43 @@
+# Ambientes virtuais
+.venv/
+venv/
+ENV/
+env/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Banco de dados local
+*.sqlite3
+instance/*.db
+
+# Configurações de IDEs
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Arquivos de log
+*.log
+
+# Arquivos compactados
+*.zip
+*.tar.gz
+
+# Migrations pycache
+migrations/__pycache__/
+migrations/versions/__pycache__/
+
+# Uploads (se não quiser versionar)
+static/uploads/
+static/uploads/gallery/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db

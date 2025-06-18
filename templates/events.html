@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Eventos{% endblock %}
+
+{% block body_class %}dark-theme{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+    <h1 class="text-center section-title">Eventos</h1>
+
+    {% if upcoming_events %}
+        <section class="mb-5">
+            <h2 class="mb-4">Próximos Eventos</h2>
+            <div class="row">
+                {% for event in upcoming_events %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow" style="background-color: #1e293b; border: none;">
+                            {% if event.image %}
+                                <img src="{{ url_for('static', filename='uploads/' + event.image) }}" class="card-img-top" alt="{{ event.title }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/event-default.jpg') }}" class="card-img-top" alt="{{ event.title }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ event.title }}</h5>
+                                <p class="card-text text-muted">
+                                    <i class="far fa-calendar-alt me-2"></i> {{ event.start_date.strftime('%d/%m/%Y') }} - {{ event.end_date.strftime('%d/%m/%Y') }}
+                                    <br>
+                                    <i class="far fa-clock me-2"></i> {{ event.start_date.strftime('%H:%M') }} - {{ event.end_date.strftime('%H:%M') }}
+                                    <br>
+                                    <i class="fas fa-map-marker-alt me-2"></i> {{ event.location }}
+                                </p>
+                                <p class="card-text">{{ event.description|truncate(200) }}</p>
+                                <button type="button" class="btn btn-consult" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">
+                                    Ver Detalhes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Modal -->
+                    <div class="modal fade" id="eventModal{{ event.id }}" tabindex="-1" aria-labelledby="eventModalLabel{{ event.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content" style="background-color: #1e293b; color: white;">
+                                <div class="modal-header" style="border-bottom-color: #2d3748;">
+                                    <h5 class="modal-title" id="eventModalLabel{{ event.id }}">{{ event.title }}</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    {% if event.image %}
+                                        <img src="{{ url_for('static', filename='uploads/' + event.image) }}" class="img-fluid mb-3 w-100" alt="{{ event.title }}">
+                                    {% endif %}
+                                    <p>
+                                        <strong><i class="far fa-calendar-alt me-2"></i>Data:</strong>
+                                        {{ event.start_date.strftime('%d/%m/%Y') }}
+                                        {% if event.start_date.date() != event.end_date.date() %}
+                                            - {{ event.end_date.strftime('%d/%m/%Y') }}
+                                        {% endif %}
+                                    </p>
+                                    <p>
+                                        <strong><i class="far fa-clock me-2"></i>Horário:</strong>
+                                        {{ event.start_date.strftime('%H:%M') }} - {{ event.end_date.strftime('%H:%M') }}
+                                    </p>
+                                    <p>
+                                        <strong><i class="fas fa-map-marker-alt me-2"></i>Local:</strong>
+                                        {{ event.location }}
+                                    </p>
+                                    <hr style="border-top-color: #2d3748;">
+                                    <div>
+                                        {{ event.description|safe }}
+                                    </div>
+                                </div>
+                                <div class="modal-footer" style="border-top-color: #2d3748;">
+                                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Fechar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {% if past_events %}
+        <section>
+            <h2 class="mb-4">Eventos Anteriores</h2>
+            <div class="row">
+                {% for event in past_events %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow" style="background-color: #1e293b; border: none;">
+                            {% if event.image %}
+                                <img src="{{ url_for('static', filename='uploads/' + event.image) }}" class="card-img-top" alt="{{ event.title }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/event-default.jpg') }}" class="card-img-top" alt="{{ event.title }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <div class="badge bg-secondary mb-2">Evento Passado</div>
+                                <h5 class="card-title">{{ event.title }}</h5>
+                                <p class="card-text text-muted">
+                                    <i class="far fa-calendar-alt me-2"></i> {{ event.start_date.strftime('%d/%m/%Y') }}
+                                    <br>
+                                    <i class="fas fa-map-marker-alt me-2"></i> {{ event.location }}
+                                </p>
+                                <p class="card-text">{{ event.description|truncate(150) }}</p>
+                                <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">
+                                    Ver Detalhes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Modal -->
+                    <div class="modal fade" id="eventModal{{ event.id }}" tabindex="-1" aria-labelledby="eventModalLabel{{ event.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content" style="background-color: #1e293b; color: white;">
+                                <div class="modal-header" style="border-bottom-color: #2d3748;">
+                                    <h5 class="modal-title" id="eventModalLabel{{ event.id }}">{{ event.title }} (Evento Passado)</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    {% if event.image %}
+                                        <img src="{{ url_for('static', filename='uploads/' + event.image) }}" class="img-fluid mb-3 w-100" alt="{{ event.title }}">
+                                    {% endif %}
+                                    <p>
+                                        <strong><i class="far fa-calendar-alt me-2"></i>Data:</strong>
+                                        {{ event.start_date.strftime('%d/%m/%Y') }}
+                                        {% if event.start_date.date() != event.end_date.date() %}
+                                            - {{ event.end_date.strftime('%d/%m/%Y') }}
+                                        {% endif %}
+                                    </p>
+                                    <p>
+                                        <strong><i class="far fa-clock me-2"></i>Horário:</strong>
+                                        {{ event.start_date.strftime('%H:%M') }} - {{ event.end_date.strftime('%H:%M') }}
+                                    </p>
+                                    <p>
+                                        <strong><i class="fas fa-map-marker-alt me-2"></i>Local:</strong>
+                                        {{ event.location }}
+                                    </p>
+                                    <hr style="border-top-color: #2d3748;">
+                                    <div>
+                                        {{ event.description|safe }}
+                                    </div>
+                                </div>
+                                <div class="modal-footer" style="border-top-color: #2d3748;">
+                                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Fechar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {% if not upcoming_events and not past_events %}
+        <div class="alert text-center" style="background-color: #1e293b; color: white;">
+            <h4 class="alert-heading">Nenhum evento cadastrado</h4>
+            <p>No momento não temos eventos programados. Volte em breve para conferir nossa agenda de eventos.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

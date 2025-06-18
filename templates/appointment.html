@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Agendar Consulta{% endblock %}
+
+{% block body_class %}dark-theme{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-5">
+                    <h1 class="display-5 text-white mb-3">Agende sua Consulta</h1>
+                    <p class="lead text-light">Preencha o formulário abaixo para agendar sua consulta com Dr. Julio Vasconcelos.</p>
+                </div>
+
+                <div class="card bg-dark-blue shadow-lg border-0 rounded-lg">
+                    <div class="card-body p-4 p-md-5">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} alert-dismissible fade show mb-4">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="POST" action="{{ url_for('main_bp.appointment') }}" class="needs-validation" novalidate>
+                            {{ form.csrf_token }}
+
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label for="name" class="form-label text-light mb-2">Nome Completo</label>
+                                    {{ form.name(class="form-control form-control-lg bg-darker text-white", id="name") }}
+                                    {% if form.name.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.name.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label text-light mb-2">Email</label>
+                                    {{ form.email(class="form-control form-control-lg bg-darker text-white", id="email") }}
+                                    {% if form.email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.email.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="phone" class="form-label text-light mb-2">Telefone</label>
+                                {{ form.phone(class="form-control form-control-lg bg-darker text-white", id="phone") }}
+                                {% if form.phone.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.phone.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3 mb-md-0">
+                                    <label for="date" class="form-label text-light mb-2">Data</label>
+                                    {{ form.date(class="form-control form-control-lg bg-darker text-white", id="date", type="date") }}
+                                    {% if form.date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.date.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="time" class="form-label text-light mb-2">Horário</label>
+                                    {{ form.time(class="form-control form-control-lg bg-darker text-white", id="time", type="time") }}
+                                    {% if form.time.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in form.time.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="reason" class="form-label text-light mb-2">Motivo da Consulta</label>
+                                {{ form.reason(class="form-control form-control-lg bg-darker text-white", id="reason", rows="5", placeholder="Descreva brevemente o motivo da sua consulta...") }}
+                                {% if form.reason.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.reason.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="d-grid">
+                                {{ form.submit(class="btn btn-primary btn-lg") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card bg-dark-blue shadow mt-4 border-0 rounded-lg">
+                    <div class="card-body p-4">
+                        <h4 class="text-white mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Informações Importantes</h4>
+                        <ul class="text-light mb-0">
+                            <li>Chegue 15 minutos antes do horário agendado</li>
+                            <li>Traga seus exames anteriores, se houver</li>
+                            <li>Em caso de impossibilidade de comparecimento, favor avisar com 24h de antecedência</li>
+                            <li>Consultas duram aproximadamente 50 minutos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize date picker with today as minimum date
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('date');
+        if (dateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.setAttribute('min', today);
+        }
+    });
+</script>
+{% endblock %}

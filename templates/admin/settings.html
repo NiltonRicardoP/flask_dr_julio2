@@ -1,0 +1,181 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Configurações{% endblock %}
+{% block page_title %}Configurações do Site{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" action="{{ url_for('admin_bp.settings') }}">
+            {{ form.csrf_token }}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.site_title.label(class="form-label") }}
+                    {{ form.site_title(class="form-control") }}
+                    {% if form.site_title.errors %}
+                        <div class="text-danger">
+                            {% for error in form.site_title.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    {{ form.contact_email.label(class="form-label") }}
+                    {{ form.contact_email(class="form-control") }}
+                    {% if form.contact_email.errors %}
+                        <div class="text-danger">
+                            {% for error in form.contact_email.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.contact_phone.label(class="form-label") }}
+                    {{ form.contact_phone(class="form-control") }}
+                    {% if form.contact_phone.errors %}
+                        <div class="text-danger">
+                            {% for error in form.contact_phone.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                {{ form.address.label(class="form-label") }}
+                {{ form.address(class="form-control", rows=3) }}
+                {% if form.address.errors %}
+                    <div class="text-danger">
+                        {% for error in form.address.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                        </div>
+                {% endif %}
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Informações Profissionais</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        {{ form.about_text.label(class="form-label") }}
+                        {{ form.about_text(class="form-control", rows=6) }}
+                        {% if form.about_text.errors %}
+                            <div class="text-danger">
+                                {% for error in form.about_text.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.academic_background.label(class="form-label") }}
+                        {{ form.academic_background(class="form-control", rows=4) }}
+                        {% if form.academic_background.errors %}
+                            <div class="text-danger">
+                                {% for error in form.academic_background.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.professional_experience.label(class="form-label") }}
+                        {{ form.professional_experience(class="form-control", rows=4) }}
+                        {% if form.professional_experience.errors %}
+                            <div class="text-danger">
+                                {% for error in form.professional_experience.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Redes Sociais</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fab fa-facebook"></i></span>
+                                {{ form.social_facebook(class="form-control", placeholder="URL do Facebook") }}
+                            </div>
+                            {% if form.social_facebook.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.social_facebook.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fab fa-instagram"></i></span>
+                                {{ form.social_instagram(class="form-control", placeholder="URL do Instagram") }}
+                            </div>
+                            {% if form.social_instagram.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.social_instagram.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fab fa-youtube"></i></span>
+                                {{ form.social_youtube(class="form-control", placeholder="URL do YouTube") }}
+                            </div>
+                            {% if form.social_youtube.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.social_youtube.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Imagem de Perfil</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        {{ form.about_image.label(class="form-label") }}
+                        {{ form.about_image(class="form-control") }}
+                        {% if settings.about_image %}
+                            <div class="mt-3">
+                                <p>Imagem atual:</p>
+                                <img src="{{ url_for('static', filename='uploads/' ~ settings.about_image) }}" class="img-thumbnail" style="max-height: 150px;">
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                {{ form.submit(class="btn btn-primary btn-lg") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

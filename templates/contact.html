@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Contato{% endblock %}
+
+{% block body_class %}dark-theme{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="text-center section-title">Entre em Contato</h1>
+
+            <div class="row mb-5">
+                <div class="col-md-4 text-center">
+                    <div class="contact-info-item">
+                        <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                        <h5>Email</h5>
+                        <p>{{ settings.contact_email if settings else 'contato@drjulio.com' }}</p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 text-center">
+                    <div class="contact-info-item">
+                        <i class="fas fa-phone fa-3x text-primary mb-3"></i>
+                        <h5>Telefone</h5>
+                        <p>{{ settings.contact_phone if settings else '(11) 99999-9999' }}</p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 text-center">
+                    <div class="contact-info-item">
+                        <i class="fas fa-map-marker-alt fa-3x text-primary mb-3"></i>
+                        <h5>Endereço</h5>
+                        <p>{{ settings.address if settings else 'Av. Paulista, 1000, São Paulo - SP' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow" style="background-color: #1e293b; border: none;">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Envie-nos uma mensagem</h3>
+
+                    <form method="POST" action="{{ url_for('main_bp.contact') }}">
+                        {{ form.csrf_token }}
+
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control", style="background-color: #2d3748; border-color: #4a5568; color: white;") }}
+                            {% if form.name.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.name.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control", style="background-color: #2d3748; border-color: #4a5568; color: white;") }}
+                            {% if form.email.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.email.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.subject.label(class="form-label") }}
+                            {{ form.subject(class="form-control", style="background-color: #2d3748; border-color: #4a5568; color: white;") }}
+                            {% if form.subject.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.subject.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.message.label(class="form-label") }}
+                            {{ form.message(class="form-control", rows=5, style="background-color: #2d3748; border-color: #4a5568; color: white;") }}
+                            {% if form.message.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.message.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-center">
+                            {{ form.submit(class="btn btn-consult btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5">
+        <iframe
+                width="100%"
+                height="300"
+                style="border:0; border-radius: 10px;"
+                loading="lazy"
+                allowfullscreen
+                referrerpolicy="no-referrer-when-downgrade"
+                src="https://www.google.com/maps?q={{ settings.address | urlencode if settings else 'São Paulo' }}&output=embed">
+        </iframe>
+    </div>
+</div>
+{% endblock %}
