@@ -1,8 +1,5 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
-from flask_mail import Message
+from flask import Blueprint, render_template, redirect, url_for, flash
 from datetime import datetime
-import os
-from werkzeug.utils import secure_filename
 
 from forms import ContactForm, AppointmentForm
 from models import db, Event, Appointment, Settings
