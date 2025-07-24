@@ -101,3 +101,10 @@ class ConvenioForm(FlaskForm):
     status = SelectField('Status', choices=[('active', 'Ativo'), ('inactive', 'Inativo')], validators=[DataRequired()])
     submit = SubmitField('Salvar')
 
+
+class CourseEnrollmentForm(FlaskForm):
+    name = StringField('Nome', validators=[DataRequired(), Length(min=3, max=100)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    phone = StringField('Telefone', validators=[DataRequired(), Length(min=8, max=20)])
+    submit = SubmitField('Enviar Inscrição')
+
