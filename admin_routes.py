@@ -3,8 +3,8 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
-from models import GalleryItem
-from forms import GalleryForm
+from models import GalleryItem, BillingRecord, Invoice, Convenio
+from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm
 from forms import LoginForm, EventForm, SettingsForm
 from models import db, User, Event, Appointment, Settings
 
@@ -206,3 +206,124 @@ def delete_gallery_item(item_id):
     db.session.commit()
     flash('Item removido com sucesso!', 'success')
     return redirect(url_for('admin_bp.gallery'))
+
+
+@admin_bp.route('/billings')
+@login_required
+def billings():
+    records = BillingRecord.query.order_by(BillingRecord.created_at.desc()).all()
+    return render_template('admin/billings.html', records=records)
+
+
+@admin_bp.route('/billings/add', methods=['GET', 'POST'])
+@login_required
+def add_billing():
+    form = BillingRecordForm()
+    if form.validate_on_submit():
+        record = BillingRecord(
+            patient_name=form.patient_name.data,
+            description=form.description.data,
+            amount=form.amount.data,
+            status=form.status.data
+        )
+        db.session.add(record)
+        db.session.commit()
+        flash('Registro de faturamento adicionado!', 'success')
+        return redirect(url_for('admin_bp.billings'))
+    return render_template('admin/billing_form.html', form=form, title='Novo Faturamento')
+
+
+@admin_bp.route('/billings/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_billing(id):
+    record = BillingRecord.query.get_or_404(id)
+    form = BillingRecordForm(obj=record)
+    if form.validate_on_submit():
+        record.patient_name = form.patient_name.data
+        record.description = form.description.data
+        record.amount = form.amount.data
+        record.status = form.status.data
+        db.session.commit()
+        flash('Registro atualizado!', 'success')
+        return redirect(url_for('admin_bp.billings'))
+    return render_template('admin/billing_form.html', form=form, title='Editar Faturamento')
+
+
+@admin_bp.route('/invoices')
+@login_required
+def invoices():
+    invoices = Invoice.query.order_by(Invoice.created_at.desc()).all()
+    return render_template('admin/invoices.html', invoices=invoices)
+
+
+@admin_bp.route('/invoices/add', methods=['GET', 'POST'])
+@login_required
+def add_invoice():
+    form = InvoiceForm()
+    if form.validate_on_submit():
+        invoice = Invoice(
+            number=form.number.data,
+            amount=form.amount.data,
+            due_date=form.due_date.data,
+            status=form.status.data
+        )
+        db.session.add(invoice)
+        db.session.commit()
+        flash('Nota fiscal adicionada!', 'success')
+        return redirect(url_for('admin_bp.invoices'))
+    return render_template('admin/invoice_form.html', form=form, title='Nova Nota Fiscal')
+
+
+@admin_bp.route('/invoices/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_invoice(id):
+    invoice = Invoice.query.get_or_404(id)
+    form = InvoiceForm(obj=invoice)
+    if form.validate_on_submit():
+        invoice.number = form.number.data
+        invoice.amount = form.amount.data
+        invoice.due_date = form.due_date.data
+        invoice.status = form.status.data
+        db.session.commit()
+        flash('Nota fiscal atualizada!', 'success')
+        return redirect(url_for('admin_bp.invoices'))
+    return render_template('admin/invoice_form.html', form=form, title='Editar Nota Fiscal')
+
+
+@admin_bp.route('/convenios')
+@login_required
+def convenios():
+    convenios = Convenio.query.order_by(Convenio.created_at.desc()).all()
+    return render_template('admin/convenios.html', convenios=convenios)
+
+
+@admin_bp.route('/convenios/add', methods=['GET', 'POST'])
+@login_required
+def add_convenio():
+    form = ConvenioForm()
+    if form.validate_on_submit():
+        convenio = Convenio(
+            name=form.name.data,
+            details=form.details.data,
+            status=form.status.data
+        )
+        db.session.add(convenio)
+        db.session.commit()
+        flash('Convênio adicionado!', 'success')
+        return redirect(url_for('admin_bp.convenios'))
+    return render_template('admin/convenio_form.html', form=form, title='Novo Convênio')
+
+
+@admin_bp.route('/convenios/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_convenio(id):
+    convenio = Convenio.query.get_or_404(id)
+    form = ConvenioForm(obj=convenio)
+    if form.validate_on_submit():
+        convenio.name = form.name.data
+        convenio.details = form.details.data
+        convenio.status = form.status.data
+        db.session.commit()
+        flash('Convênio atualizado!', 'success')
+        return redirect(url_for('admin_bp.convenios'))
+    return render_template('admin/convenio_form.html', form=form, title='Editar Convênio')
