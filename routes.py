@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from datetime import datetime
 
-from forms import ContactForm, AppointmentForm
-from models import db, Event, Appointment, Settings
+from forms import ContactForm, AppointmentForm, CourseEnrollmentForm
+from models import db, Event, Appointment, Settings, Course, CourseEnrollment
 
 # Create a Blueprint for the main routes
 main_bp = Blueprint('main_bp', __name__)
@@ -70,10 +70,40 @@ def events():
     settings = Settings.query.first()
     upcoming_events = Event.get_upcoming_events()
     past_events = Event.get_past_events()
-    return render_template('events.html', 
-                          settings=settings, 
-                          upcoming_events=upcoming_events, 
+    return render_template('events.html',
+                          settings=settings,
+                          upcoming_events=upcoming_events,
                           past_events=past_events)
+
+
+@main_bp.route('/cursos')
+def courses():
+    settings = Settings.query.first()
+    courses = Course.query.filter_by(is_active=True).all()
+    return render_template('courses.html', courses=courses, settings=settings)
+
+
+@main_bp.route('/cursos/<int:id>', methods=['GET', 'POST'])
+def course_detail(id):
+    course = Course.query.get_or_404(id)
+    settings = Settings.query.first()
+    form = CourseEnrollmentForm()
+    if form.validate_on_submit():
+        enrollment = CourseEnrollment(
+            course_id=course.id,
+            name=form.name.data,
+            email=form.email.data,
+            phone=form.phone.data,
+        )
+        try:
+            db.session.add(enrollment)
+            db.session.commit()
+            flash('Inscrição enviada com sucesso!', 'success')
+            return redirect(url_for('main_bp.course_detail', id=course.id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Ocorreu um erro ao registrar sua inscrição: {e}', 'danger')
+    return render_template('course_detail.html', course=course, form=form, settings=settings)
 
 @main_bp.context_processor
 def inject_settings():
