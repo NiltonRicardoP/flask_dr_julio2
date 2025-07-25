@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, PasswordField, TextAreaField, DateField, TimeField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, TextAreaField, DateField, TimeField, BooleanField, SubmitField, FloatField
 from wtforms.validators import DataRequired, Email, ValidationError, Length, Optional
 from datetime import date
 from wtforms import SelectField
@@ -77,4 +77,34 @@ class GalleryForm(FlaskForm):
         ('videos', 'Vídeos')
     ], validators=[DataRequired()])
     submit = SubmitField('Salvar')
+
+
+class BillingRecordForm(FlaskForm):
+    patient_name = StringField('Paciente', validators=[DataRequired()])
+    description = TextAreaField('Descrição', validators=[Optional()])
+    amount = FloatField('Valor', validators=[DataRequired()])
+    status = SelectField('Status', choices=[('pending', 'Pendente'), ('paid', 'Pago'), ('cancelled', 'Cancelado')], validators=[DataRequired()])
+    submit = SubmitField('Salvar')
+
+
+class InvoiceForm(FlaskForm):
+    number = StringField('Número', validators=[DataRequired()])
+    amount = FloatField('Valor', validators=[DataRequired()])
+    due_date = DateField('Vencimento', validators=[DataRequired()])
+    status = SelectField('Status', choices=[('pending', 'Pendente'), ('paid', 'Pago'), ('cancelled', 'Cancelado')], validators=[DataRequired()])
+    submit = SubmitField('Salvar')
+
+
+class ConvenioForm(FlaskForm):
+    name = StringField('Nome', validators=[DataRequired()])
+    details = TextAreaField('Detalhes', validators=[Optional()])
+    status = SelectField('Status', choices=[('active', 'Ativo'), ('inactive', 'Inativo')], validators=[DataRequired()])
+    submit = SubmitField('Salvar')
+
+
+class CourseEnrollmentForm(FlaskForm):
+    name = StringField('Nome', validators=[DataRequired(), Length(min=3, max=100)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    phone = StringField('Telefone', validators=[DataRequired(), Length(min=8, max=20)])
+    submit = SubmitField('Enviar Inscrição')
 

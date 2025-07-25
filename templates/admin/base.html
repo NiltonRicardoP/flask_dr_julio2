@@ -171,6 +171,28 @@
                         </li>
                     </ul>
 
+                    <div class="sidebar-header mt-4">Financeiro</div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.billings' %}active{% endif %}" href="{{ url_for('admin_bp.billings') }}">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                Faturamentos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.invoices' %}active{% endif %}" href="{{ url_for('admin_bp.invoices') }}">
+                                <i class="fas fa-file-invoice"></i>
+                                Notas Fiscais
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.convenios' %}active{% endif %}" href="{{ url_for('admin_bp.convenios') }}">
+                                <i class="fas fa-handshake"></i>
+                                Convênios
+                            </a>
+                        </li>
+                    </ul>
+
                     <div class="sidebar-header mt-4">Sistema</div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
