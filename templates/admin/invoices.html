@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% block title %}Notas Fiscais{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Notas Fiscais</h1>
+    <a href="{{ url_for('admin_bp.add_invoice') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nova
+    </a>
+</div>
+<div class="card shadow">
+    <div class="card-body">
+        {% if invoices %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Valor</th>
+                        <th>Vencimento</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in invoices %}
+                    <tr>
+                        <td>{{ inv.number }}</td>
+                        <td>R$ {{ '%.2f'|format(inv.amount) }}</td>
+                        <td>{{ inv.due_date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ inv.status }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_bp.edit_invoice', id=inv.id) }}" class="btn btn-sm btn-outline-primary">Editar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center">Nenhuma nota fiscal encontrada.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

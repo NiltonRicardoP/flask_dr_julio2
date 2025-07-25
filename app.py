@@ -1,9 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, session
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask import Flask
+from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
-from datetime import datetime
 import os
 
 from config import Config
