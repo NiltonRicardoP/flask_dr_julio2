@@ -37,6 +37,18 @@ export FLASK_APP=app.py
 flask db upgrade
 ```
 
+## Variáveis de ambiente
+
+Crie um arquivo `.env` para definir as configurações sensíveis utilizadas pelo
+Flask e pelo envio de emails. As principais variáveis são:
+
+- `SECRET_KEY` – chave secreta da aplicação.
+- `DATABASE_URL` – URL do banco de dados (padrão `sqlite:///dr_julio.db`).
+- `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS`, `MAIL_USERNAME`, `MAIL_PASSWORD`,
+  `MAIL_DEFAULT_SENDER` – dados para o servidor de email.
+
+Não existem variáveis específicas para cursos ou pagamentos até o momento.
+
 ## Cursos
 
 Os cursos disponíveis são exibidos na página `/cursos`. Cada curso tem uma
