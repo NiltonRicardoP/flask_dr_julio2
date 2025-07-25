@@ -106,6 +106,8 @@ class CourseForm(FlaskForm):
     title = StringField('Título', validators=[DataRequired()])
     description = TextAreaField('Descrição', validators=[DataRequired()])
     image = FileField('Imagem', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Apenas imagens são permitidas!')])
+    price = FloatField('Preço', validators=[DataRequired()])
+    access_url = StringField('URL de Acesso', validators=[Optional()])
     is_active = BooleanField('Curso Ativo', default=True)
     submit = SubmitField('Salvar')
 
@@ -115,4 +117,8 @@ class CourseEnrollmentForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     phone = StringField('Telefone', validators=[DataRequired(), Length(min=8, max=20)])
     submit = SubmitField('Enviar Inscrição')
+
+
+class ConfirmPaymentForm(FlaskForm):
+    submit = SubmitField('Confirmar Pagamento')
 

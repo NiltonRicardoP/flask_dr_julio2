@@ -347,6 +347,8 @@ def add_course():
         course = Course(
             title=form.title.data,
             description=form.description.data,
+            price=form.price.data,
+            access_url=form.access_url.data,
             image=filename,
             is_active=form.is_active.data
         )
@@ -365,6 +367,8 @@ def edit_course(id):
     if form.validate_on_submit():
         course.title = form.title.data
         course.description = form.description.data
+        course.price = form.price.data
+        course.access_url = form.access_url.data
         course.is_active = form.is_active.data
         if form.image.data:
             if course.image:
