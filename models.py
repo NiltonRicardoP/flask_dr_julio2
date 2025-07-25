@@ -123,6 +123,8 @@ class Course(db.Model):
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text)
     image = db.Column(db.String(255))
+    price = db.Column(db.Float, default=0.0)
+    access_url = db.Column(db.String(255))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -136,9 +138,24 @@ class CourseEnrollment(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
+    payment_status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     course = db.relationship('Course', backref=db.backref('enrollments', lazy=True))
+
+
+class PaymentTransaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    enrollment_id = db.Column(db.Integer, db.ForeignKey('course_enrollment.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    provider_id = db.Column(db.String(100))
+    status = db.Column(db.String(20), default='paid')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    enrollment = db.relationship('CourseEnrollment', backref=db.backref('transactions', lazy=True))
+
+    def __repr__(self):
+        return f'<PaymentTransaction {self.id}>'
 
 
 class Convenio(db.Model):

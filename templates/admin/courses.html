@@ -15,6 +15,7 @@
                 <thead>
                     <tr>
                         <th>Título</th>
+                        <th>Preço</th>
                         <th>Ativo</th>
                         <th>Criado em</th>
                         <th>Ações</th>
@@ -24,6 +25,7 @@
                     {% for course in courses %}
                     <tr>
                         <td>{{ course.title }}</td>
+                        <td>R$ {{ '%.2f'|format(course.price) }}</td>
                         <td>
                             {% if course.is_active %}
                                 <span class="badge bg-success">Ativo</span>

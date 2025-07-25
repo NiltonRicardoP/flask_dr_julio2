@@ -49,4 +49,10 @@ No painel administrativo existem novas opções para **Cursos** e **Inscrições
 Usuários administradores podem criar, editar e remover cursos, além de
 acompanhar todas as inscrições recebidas.
 
+### Pagamentos
+
+Após se inscrever em um curso o usuário é direcionado para uma página de pagamento.
+O processo é simulado e, quando confirmado, o status da inscrição muda para **paid**
+e é criado um registro em `PaymentTransaction`. Em seguida é apresentado o link de
+acesso ao material configurado para o curso.
 

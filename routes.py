@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from datetime import datetime
 
-from forms import ContactForm, AppointmentForm, CourseEnrollmentForm
-from models import db, Event, Appointment, Settings, Course, CourseEnrollment
+from forms import ContactForm, AppointmentForm, CourseEnrollmentForm, ConfirmPaymentForm
+from models import db, Event, Appointment, Settings, Course, CourseEnrollment, PaymentTransaction
 
 # Create a Blueprint for the main routes
 main_bp = Blueprint('main_bp', __name__)
@@ -99,11 +99,44 @@ def course_detail(id):
             db.session.add(enrollment)
             db.session.commit()
             flash('Inscrição enviada com sucesso!', 'success')
-            return redirect(url_for('main_bp.course_detail', id=course.id))
+            return redirect(url_for('main_bp.pay_course', enrollment_id=enrollment.id))
         except Exception as e:
             db.session.rollback()
             flash(f'Ocorreu um erro ao registrar sua inscrição: {e}', 'danger')
     return render_template('course_detail.html', course=course, form=form, settings=settings)
+
+
+@main_bp.route('/pagamento/<int:enrollment_id>', methods=['GET', 'POST'])
+def pay_course(enrollment_id):
+    enrollment = CourseEnrollment.query.get_or_404(enrollment_id)
+    form = ConfirmPaymentForm()
+    if enrollment.payment_status == 'paid':
+        return redirect(url_for('main_bp.course_access', enrollment_id=enrollment.id))
+    if form.validate_on_submit():
+        try:
+            enrollment.payment_status = 'paid'
+            transaction = PaymentTransaction(
+                enrollment_id=enrollment.id,
+                amount=enrollment.course.price,
+                provider_id='SIMULATED'
+            )
+            db.session.add(transaction)
+            db.session.commit()
+            flash('Pagamento realizado com sucesso!', 'success')
+            return redirect(url_for('main_bp.course_access', enrollment_id=enrollment.id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Ocorreu um erro no pagamento: {e}', 'danger')
+    return render_template('pay_course.html', enrollment=enrollment, form=form)
+
+
+@main_bp.route('/curso/acesso/<int:enrollment_id>')
+def course_access(enrollment_id):
+    enrollment = CourseEnrollment.query.get_or_404(enrollment_id)
+    if enrollment.payment_status != 'paid':
+        flash('Pagamento não identificado para esta inscrição.', 'warning')
+        return redirect(url_for('main_bp.course_detail', id=enrollment.course_id))
+    return render_template('course_access.html', enrollment=enrollment)
 
 @main_bp.context_processor
 def inject_settings():
