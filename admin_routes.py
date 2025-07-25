@@ -2,10 +2,10 @@ from flask import Blueprint, render_template, redirect, url_for, flash, current_
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 import os
-from models import GalleryItem, BillingRecord, Invoice, Convenio
-from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm
+from models import GalleryItem, BillingRecord, Invoice, Convenio, Course, CourseEnrollment
+from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm, CourseForm
 from forms import LoginForm, EventForm, SettingsForm
-from models import db, User, Event, Appointment, Settings
+from models import db, User, Event, Appointment, Settings, Course, CourseEnrollment
 
 # Create Blueprint for the admin routes
 admin_bp = Blueprint('admin_bp', __name__)
@@ -326,3 +326,78 @@ def edit_convenio(id):
         flash('Convênio atualizado!', 'success')
         return redirect(url_for('admin_bp.convenios'))
     return render_template('admin/convenio_form.html', form=form, title='Editar Convênio')
+
+
+@admin_bp.route('/courses')
+@login_required
+def courses():
+    courses = Course.query.order_by(Course.created_at.desc()).all()
+    return render_template('admin/courses.html', courses=courses)
+
+
+@admin_bp.route('/courses/add', methods=['GET', 'POST'])
+@login_required
+def add_course():
+    form = CourseForm()
+    if form.validate_on_submit():
+        filename = None
+        if form.image.data:
+            filename = secure_filename(form.image.data.filename)
+            form.image.data.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+        course = Course(
+            title=form.title.data,
+            description=form.description.data,
+            image=filename,
+            is_active=form.is_active.data
+        )
+        db.session.add(course)
+        db.session.commit()
+        flash('Curso adicionado!', 'success')
+        return redirect(url_for('admin_bp.courses'))
+    return render_template('admin/course_form.html', form=form, title='Novo Curso')
+
+
+@admin_bp.route('/courses/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_course(id):
+    course = Course.query.get_or_404(id)
+    form = CourseForm(obj=course)
+    if form.validate_on_submit():
+        course.title = form.title.data
+        course.description = form.description.data
+        course.is_active = form.is_active.data
+        if form.image.data:
+            if course.image:
+                try:
+                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], course.image))
+                except Exception:
+                    pass
+            filename = secure_filename(form.image.data.filename)
+            form.image.data.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+            course.image = filename
+        db.session.commit()
+        flash('Curso atualizado!', 'success')
+        return redirect(url_for('admin_bp.courses'))
+    return render_template('admin/course_form.html', form=form, title='Editar Curso', course=course)
+
+
+@admin_bp.route('/courses/delete/<int:id>', methods=['POST'])
+@login_required
+def delete_course(id):
+    course = Course.query.get_or_404(id)
+    if course.image:
+        try:
+            os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], course.image))
+        except Exception:
+            pass
+    db.session.delete(course)
+    db.session.commit()
+    flash('Curso removido!', 'success')
+    return redirect(url_for('admin_bp.courses'))
+
+
+@admin_bp.route('/enrollments')
+@login_required
+def enrollments():
+    enrollments = CourseEnrollment.query.order_by(CourseEnrollment.created_at.desc()).all()
+    return render_template('admin/enrollments.html', enrollments=enrollments)

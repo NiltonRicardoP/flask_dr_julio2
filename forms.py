@@ -102,6 +102,14 @@ class ConvenioForm(FlaskForm):
     submit = SubmitField('Salvar')
 
 
+class CourseForm(FlaskForm):
+    title = StringField('Título', validators=[DataRequired()])
+    description = TextAreaField('Descrição', validators=[DataRequired()])
+    image = FileField('Imagem', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Apenas imagens são permitidas!')])
+    is_active = BooleanField('Curso Ativo', default=True)
+    submit = SubmitField('Salvar')
+
+
 class CourseEnrollmentForm(FlaskForm):
     name = StringField('Nome', validators=[DataRequired(), Length(min=3, max=100)])
     email = StringField('Email', validators=[DataRequired(), Email()])
