@@ -28,10 +28,25 @@ Para produção é possível utilizar o `Procfile` com Gunicorn. O arquivo `runt
 
 ### Migrações
 
-As migrações do banco ficam na pasta `migrations/`. Para aplicar as migrações utilize:
+As migrações do banco ficam na pasta `migrations/`. Para criar ou atualizar as
+tabelas (incluindo as de cursos) execute, com o ambiente virtual ativo e a
+variável `FLASK_APP` apontando para `app.py`:
 
 ```bash
+export FLASK_APP=app.py
 flask db upgrade
 ```
+
+## Cursos
+
+Os cursos disponíveis são exibidos na página `/cursos`. Cada curso tem uma
+página de detalhes onde o visitante pode se inscrever informando nome, e‑mail e
+telefone. Após o envio, a inscrição é registrada no banco de dados.
+
+### Administração de cursos
+
+No painel administrativo existem novas opções para **Cursos** e **Inscrições**.
+Usuários administradores podem criar, editar e remover cursos, além de
+acompanhar todas as inscrições recebidas.
 
 
