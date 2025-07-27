@@ -37,6 +37,8 @@ export FLASK_APP=app.py
 flask db upgrade
 ```
 
+Após atualizar o repositório lembre‑se de rodar `flask db upgrade` para aplicar a nova migração que cria as tabelas de cursos.
+
 ## Variáveis de ambiente
 
 Crie um arquivo `.env` para definir as configurações sensíveis utilizadas pelo
@@ -54,12 +56,16 @@ Não existem variáveis específicas para cursos ou pagamentos até o momento.
 Os cursos disponíveis são exibidos na página `/cursos`. Cada curso tem uma
 página de detalhes onde o visitante pode se inscrever informando nome, e‑mail e
 telefone. Após o envio, a inscrição é registrada no banco de dados.
+O cadastro de cursos é representado pelo modelo `Course`, que armazena título,
+descrição, imagem, preço, link de acesso e se o curso está ativo.
 
 ### Administração de cursos
 
 No painel administrativo existem novas opções para **Cursos** e **Inscrições**.
 Usuários administradores podem criar, editar e remover cursos, além de
-acompanhar todas as inscrições recebidas.
+acompanhar todas as inscrições recebidas. Os principais caminhos são:
+`/admin/courses` (lista), `/admin/courses/add`, `/admin/courses/edit/<id>` e
+`/admin/courses/delete/<id>`.
 
 ### Pagamentos
 
