@@ -21,6 +21,16 @@ def test_courses_shows_active_courses(client):
     assert 'Inactive' not in html
 
 
+def test_courses_route_english_alias(client):
+    """Ensure /courses returns the course list."""
+    with client.application.app_context():
+        create_course(title='Active EN', description='desc', price=10, is_active=True)
+    resp = client.get('/courses')
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+    assert 'Active EN' in html
+
+
 def test_course_detail_post_creates_enrollment(client):
     with client.application.app_context():
         course = create_course(title='Course', description='desc', price=10, is_active=True)

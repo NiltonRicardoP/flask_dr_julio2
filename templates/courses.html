@@ -15,6 +15,7 @@
                     {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{ course.title }}</h5>
+                        <p class="text-light mb-1">Data: {{ course.created_at.strftime('%d/%m/%Y') }}</p>
                         <p class="text-light">Valor: R$ {{ '%.2f'|format(course.price) }}</p>
                         <p class="card-text">{{ course.description|truncate(150) }}</p>
                         <a href="{{ url_for('main_bp.course_detail', id=course.id) }}" class="btn btn-consult">Ver Detalhes</a>

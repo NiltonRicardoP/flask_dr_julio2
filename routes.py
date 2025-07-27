@@ -81,11 +81,18 @@ def events():
                           past_events=past_events)
 
 
-@main_bp.route('/cursos')
+@main_bp.route('/courses')
 def courses():
+    """Public list of active courses."""
     settings = Settings.query.first()
     courses = Course.query.filter_by(is_active=True).all()
     return render_template('courses.html', courses=courses, settings=settings)
+
+
+@main_bp.route('/cursos')
+def cursos():
+    """Portuguese alias for the courses page."""
+    return courses()
 
 
 @main_bp.route('/cursos/<int:id>', methods=['GET', 'POST'])
