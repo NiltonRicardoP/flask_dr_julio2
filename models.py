@@ -142,6 +142,28 @@ class Course(db.Model):
     def __repr__(self):
         return f'<Course {self.title}>'
 
+    @classmethod
+    def get_upcoming_courses(cls):
+        """Return active courses starting today or later if start_date exists."""
+        query = cls.query.filter(cls.is_active == True)
+        if hasattr(cls, "start_date"):
+            query = query.filter(cls.start_date >= datetime.utcnow())
+            order_field = cls.start_date
+        else:
+            order_field = cls.created_at
+        return query.order_by(order_field).all()
+
+    @classmethod
+    def get_past_courses(cls):
+        """Return active courses that have ended when date fields exist."""
+        if not hasattr(cls, "end_date"):
+            return []
+        query = cls.query.filter(
+            cls.end_date < datetime.utcnow(), cls.is_active == True
+        )
+        order_field = getattr(cls, "start_date", cls.created_at).desc()
+        return query.order_by(order_field).all()
+
 
 class CourseEnrollment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
