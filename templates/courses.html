@@ -11,7 +11,7 @@
             <div class="col-md-4 mb-4">
                 <div class="card h-100 shadow" style="background-color:#1e293b; border:none;">
                     {% if course.image %}
-                        <img src="{{ url_for('static', filename='uploads/' + course.image) }}" class="card-img-top" alt="{{ course.title }}">
+                        <img src="{{ url_for('static', filename='uploads/courses/' + course.image) }}" class="card-img-top" alt="{{ course.title }}">
                     {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{ course.title }}</h5>
