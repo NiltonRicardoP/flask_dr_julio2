@@ -138,6 +138,24 @@ def course_access(enrollment_id):
         return redirect(url_for('main_bp.course_detail', id=enrollment.course_id))
     return render_template('course_access.html', enrollment=enrollment)
 
+
+# Public catalog of courses
+@main_bp.route('/catalogo-cursos')
+def course_catalog():
+    """Display all active courses for visitors."""
+    settings = Settings.query.first()
+    courses = Course.query.filter_by(is_active=True).all()
+    return render_template('course_catalog.html', courses=courses, settings=settings)
+
+
+# Details of a single course without enrollment form
+@main_bp.route('/catalogo-cursos/<int:course_id>')
+def course_catalog_detail(course_id):
+    """Show public details for a course."""
+    course = Course.query.get_or_404(course_id)
+    settings = Settings.query.first()
+    return render_template('course_catalog_detail.html', course=course, settings=settings)
+
 @main_bp.context_processor
 def inject_settings():
     settings = Settings.query.first()
