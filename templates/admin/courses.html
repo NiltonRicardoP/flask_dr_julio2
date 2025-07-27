@@ -37,7 +37,7 @@
                         <td>
                             <a href="{{ url_for('admin_bp.edit_course', id=course.id) }}" class="btn btn-sm btn-outline-primary me-1">Editar</a>
                             <form method="POST" action="{{ url_for('admin_bp.delete_course', id=course.id) }}" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Deseja excluir este curso?');">Excluir</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Deseja excluir este curso?');">Delete</button>
                             </form>
                         </td>
                     </tr>
