@@ -158,6 +158,20 @@ class PaymentTransaction(db.Model):
         return f'<PaymentTransaction {self.id}>'
 
 
+class CoursePurchase(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    stripe_session_id = db.Column(db.String(255))
+    status = db.Column(db.String(20), default='pending')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    course = db.relationship('Course', backref=db.backref('purchases', lazy=True))
+
+    def __repr__(self):
+        return f'<CoursePurchase {self.id}>'
+
+
 class Convenio(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
