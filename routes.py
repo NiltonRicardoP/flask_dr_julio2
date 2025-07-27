@@ -1,7 +1,13 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
 from datetime import datetime
 
-from forms import ContactForm, AppointmentForm, CourseEnrollmentForm, ConfirmPaymentForm
+from forms import (
+    ContactForm,
+    AppointmentForm,
+    CourseEnrollmentForm,
+    ConfirmPaymentForm,
+    RegistrationForm,
+)
 from models import db, Event, Appointment, Settings, Course, CourseEnrollment, PaymentTransaction, CoursePurchase
 
 try:
@@ -95,6 +101,18 @@ def cursos():
     return courses()
 
 
+@main_bp.route('/courses/<int:id>', methods=['GET', 'POST'])
+def course_page(id):
+    """Display a single course with a simple registration form."""
+    course = Course.query.get_or_404(id)
+    settings = Settings.query.first()
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        flash('Inscrição registrada com sucesso!', 'success')
+        return redirect(url_for('main_bp.course_page', id=id))
+    return render_template('course_detail.html', course=course, form=form, settings=settings)
+
+
 @main_bp.route('/cursos/<int:id>', methods=['GET', 'POST'])
 def course_detail(id):
     course = Course.query.get_or_404(id)
@@ -115,7 +133,7 @@ def course_detail(id):
         except Exception as e:
             db.session.rollback()
             flash(f'Ocorreu um erro ao registrar sua inscrição: {e}', 'danger')
-    return render_template('course_detail.html', course=course, form=form, settings=settings)
+    return render_template('course_enrollment.html', course=course, form=form, settings=settings)
 
 
 @main_bp.route('/pagamento/<int:enrollment_id>', methods=['GET', 'POST'])
