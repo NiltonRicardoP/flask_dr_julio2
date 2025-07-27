@@ -126,3 +126,10 @@ class CourseEnrollmentForm(FlaskForm):
 class ConfirmPaymentForm(FlaskForm):
     submit = SubmitField('Confirmar Pagamento')
 
+
+class RegistrationForm(FlaskForm):
+    """Simple form to register interest in a course."""
+    name = StringField('Nome', validators=[DataRequired(), Length(min=3, max=100)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Inscreva-se')
+
