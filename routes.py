@@ -114,6 +114,16 @@ def courses():
     return render_template('courses.html', courses=courses, settings=settings)
 
 
+# New route listing active courses ordered by start_date
+@main_bp.route('/active-courses')
+def active_courses():
+    """List active courses ordered by start_date if available."""
+    settings = Settings.query.first()
+    order_field = getattr(Course, 'start_date', Course.created_at)
+    courses = Course.query.filter_by(is_active=True).order_by(order_field).all()
+    return render_template('courses.html', courses=courses, settings=settings)
+
+
 @main_bp.route('/cursos')
 def cursos():
     """Portuguese alias for the courses page."""
