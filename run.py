@@ -7,6 +7,9 @@ if __name__ == '__main__':
     uploads_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
     if not os.path.exists(uploads_dir):
         os.makedirs(uploads_dir)
+    courses_dir = os.path.join(uploads_dir, 'courses')
+    if not os.path.exists(courses_dir):
+        os.makedirs(courses_dir)
         
     # Run the application
     app.run(debug=True, host='0.0.0.0', port=5000)

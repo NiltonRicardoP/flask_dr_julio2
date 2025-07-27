@@ -364,7 +364,7 @@ def add_course():
         filename = None
         if form.image.data:
             filename = secure_filename(form.image.data.filename)
-            course_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'courses')
+            course_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'courses')
             os.makedirs(course_folder, exist_ok=True)
             form.image.data.save(os.path.join(course_folder, filename))
         course = Course(
@@ -396,11 +396,11 @@ def edit_course(id):
         if form.image.data:
             if course.image:
                 try:
-                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], 'courses', course.image))
+                    os.remove(os.path.join(current_app.root_path, 'static', 'uploads', 'courses', course.image))
                 except Exception:
                     pass
             filename = secure_filename(form.image.data.filename)
-            course_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'courses')
+            course_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'courses')
             os.makedirs(course_folder, exist_ok=True)
             form.image.data.save(os.path.join(course_folder, filename))
             course.image = filename
@@ -416,7 +416,7 @@ def delete_course(id):
     course = Course.query.get_or_404(id)
     if course.image:
         try:
-            os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], 'courses', course.image))
+            os.remove(os.path.join(current_app.root_path, 'static', 'uploads', 'courses', course.image))
         except Exception:
             pass
     db.session.delete(course)
