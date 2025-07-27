@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course.title }}{% endblock %}
+{% block body_class %}dark-theme{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h1 class="mb-4">{{ course.title }}</h1>
+            {% if course.image %}
+                <img src="{{ url_for('static', filename='uploads/' + course.image) }}" class="img-fluid mb-4" alt="{{ course.title }}">
+            {% endif %}
+            <div>{{ course.description|safe }}</div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-dark-blue shadow border-0">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Informações</h5>
+                    <p class="text-light">Valor: R$ {{ '%.2f'|format(course.price) }}</p>
+                    {% if course.access_url %}
+                        <a href="{{ course.access_url }}" class="btn btn-primary" target="_blank">Acessar Conteúdo</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
