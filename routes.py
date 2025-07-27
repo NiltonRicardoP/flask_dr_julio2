@@ -117,10 +117,9 @@ def courses():
 # New route listing active courses ordered by start_date
 @main_bp.route('/active-courses')
 def active_courses():
-    """List active courses ordered by start_date if available."""
+    """List upcoming courses using Course helper methods."""
     settings = Settings.query.first()
-    order_field = getattr(Course, 'start_date', Course.created_at)
-    courses = Course.query.filter_by(is_active=True).order_by(order_field).all()
+    courses = Course.get_upcoming_courses()
     return render_template('courses.html', courses=courses, settings=settings)
 
 
