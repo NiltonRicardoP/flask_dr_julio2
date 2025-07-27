@@ -61,6 +61,18 @@ class Appointment(db.Model):
     def __repr__(self):
         return f'<Appointment {self.name} - {self.date} {self.time}>'
 
+
+class ContactMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    subject = db.Column(db.String(150), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<ContactMessage {self.name}>'
+
 class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     site_title = db.Column(db.String(100), default='Dr. Julio Vasconcelos')

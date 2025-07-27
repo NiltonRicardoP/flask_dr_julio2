@@ -2,10 +2,26 @@ from flask import Blueprint, render_template, redirect, url_for, flash, current_
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 import os
-from models import GalleryItem, BillingRecord, Invoice, Convenio, Course, CourseEnrollment
+from models import (
+    GalleryItem,
+    BillingRecord,
+    Invoice,
+    Convenio,
+    Course,
+    CourseEnrollment,
+    ContactMessage,
+)
 from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm, CourseForm
 from forms import LoginForm, EventForm, SettingsForm
-from models import db, User, Event, Appointment, Settings, Course, CourseEnrollment
+from models import (
+    db,
+    User,
+    Event,
+    Appointment,
+    Settings,
+    Course,
+    CourseEnrollment,
+)
 
 # Create Blueprint for the admin routes
 admin_bp = Blueprint('admin_bp', __name__)
@@ -37,13 +53,18 @@ def logout():
 def dashboard():
     # Get recent appointments
     appointments = Appointment.query.order_by(Appointment.created_at.desc()).limit(5).all()
-    
+
     # Get upcoming events
     upcoming_events = Event.get_upcoming_events()[:5]
-    
-    return render_template('admin/dashboard.html', 
-                          appointments=appointments, 
-                          upcoming_events=upcoming_events)
+
+    contacts_count = ContactMessage.query.count()
+    recent_contacts = ContactMessage.query.order_by(ContactMessage.created_at.desc()).limit(5).all()
+
+    return render_template('admin/dashboard.html',
+                          appointments=appointments,
+                          upcoming_events=upcoming_events,
+                          contacts_count=contacts_count,
+                          recent_contacts=recent_contacts)
 
 @admin_bp.route('/appointments')
 @login_required
@@ -409,3 +430,20 @@ def delete_course(id):
 def enrollments():
     enrollments = CourseEnrollment.query.order_by(CourseEnrollment.created_at.desc()).all()
     return render_template('admin/enrollments.html', enrollments=enrollments)
+
+
+@admin_bp.route('/messages')
+@login_required
+def messages():
+    messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
+    return render_template('admin/messages.html', messages=messages)
+
+
+@admin_bp.route('/messages/<int:id>/delete', methods=['POST'])
+@login_required
+def delete_message(id):
+    message = ContactMessage.query.get_or_404(id)
+    db.session.delete(message)
+    db.session.commit()
+    flash('Mensagem removida!', 'success')
+    return redirect(url_for('admin_bp.messages'))

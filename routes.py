@@ -8,7 +8,17 @@ from forms import (
     ConfirmPaymentForm,
     RegistrationForm,
 )
-from models import db, Event, Appointment, Settings, Course, CourseEnrollment, PaymentTransaction, CoursePurchase
+from models import (
+    db,
+    Event,
+    Appointment,
+    Settings,
+    Course,
+    CourseEnrollment,
+    PaymentTransaction,
+    CoursePurchase,
+    ContactMessage,
+)
 
 try:
     import stripe
@@ -33,15 +43,24 @@ def about():
 def contact():
     form = ContactForm()
     settings = Settings.query.first()
-    
+
     if form.validate_on_submit():
-        # Process contact form submission
+        message = ContactMessage(
+            name=form.name.data,
+            email=form.email.data,
+            subject=form.subject.data,
+            message=form.message.data,
+        )
         try:
+            db.session.add(message)
+            db.session.commit()
+
             # Send email functionality would go here
-            # For now, just display a success message
+
             flash('Sua mensagem foi enviada com sucesso! Entraremos em contato em breve.', 'success')
             return redirect(url_for('main_bp.contact'))
         except Exception as e:
+            db.session.rollback()
             flash(f'Ocorreu um erro ao enviar sua mensagem: {str(e)}', 'danger')
             
     return render_template('contact.html', form=form, settings=settings)
