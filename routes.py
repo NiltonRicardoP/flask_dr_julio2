@@ -1,8 +1,13 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
 from datetime import datetime
 
 from forms import ContactForm, AppointmentForm, CourseEnrollmentForm, ConfirmPaymentForm
-from models import db, Event, Appointment, Settings, Course, CourseEnrollment, PaymentTransaction
+from models import db, Event, Appointment, Settings, Course, CourseEnrollment, PaymentTransaction, CoursePurchase
+
+try:
+    import stripe
+except ImportError:  # pragma: no cover - Stripe optional for tests
+    stripe = None
 
 # Create a Blueprint for the main routes
 main_bp = Blueprint('main_bp', __name__)
@@ -128,6 +133,51 @@ def pay_course(enrollment_id):
             db.session.rollback()
             flash(f'Ocorreu um erro no pagamento: {e}', 'danger')
     return render_template('pay_course.html', enrollment=enrollment, form=form)
+
+
+@main_bp.route('/course/<int:id>/buy')
+def buy_course(id):
+    course = Course.query.get_or_404(id)
+    if stripe is None or not current_app.config.get('STRIPE_SECRET_KEY'):
+        flash('Sistema de pagamento indisponível.', 'danger')
+        return redirect(url_for('main_bp.course_detail', id=id))
+
+    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price_data': {
+                'currency': 'brl',
+                'product_data': {'name': course.title},
+                'unit_amount': int(course.price * 100)
+            },
+            'quantity': 1
+        }],
+        mode='payment',
+        success_url=url_for('main_bp.purchase_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url=url_for('main_bp.course_detail', id=id, _external=True)
+    )
+
+    purchase = CoursePurchase(course_id=course.id, amount=course.price, stripe_session_id=session.id)
+    db.session.add(purchase)
+    db.session.commit()
+    return redirect(session.url, code=303)
+
+
+@main_bp.route('/purchase/success')
+def purchase_success():
+    session_id = request.args.get('session_id')
+    if not session_id:
+        flash('Sessão inválida.', 'danger')
+        return redirect(url_for('main_bp.courses'))
+
+    purchase = CoursePurchase.query.filter_by(stripe_session_id=session_id).first_or_404()
+    if purchase.status != 'paid':
+        purchase.status = 'paid'
+        db.session.commit()
+
+    return render_template('purchase_success.html', purchase=purchase)
 
 
 @main_bp.route('/curso/acesso/<int:enrollment_id>')

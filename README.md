@@ -68,3 +68,7 @@ O processo é simulado e, quando confirmado, o status da inscrição muda para *
 e é criado um registro em `PaymentTransaction`. Em seguida é apresentado o link de
 acesso ao material configurado para o curso.
 
+Também é possível comprar o curso diretamente via Stripe no endpoint `/course/<id>/buy`.
+Para isso defina `STRIPE_SECRET_KEY` e `STRIPE_PUBLIC_KEY` no arquivo `.env`.
+As compras realizadas por esse fluxo são registradas no modelo `CoursePurchase`.
+
