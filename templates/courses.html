@@ -15,7 +15,11 @@
                     {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{ course.title }}</h5>
+                        {% if course.start_date %}
+                        <p class="text-light mb-1">Início: {{ course.start_date.strftime('%d/%m/%Y') }}</p>
+                        {% else %}
                         <p class="text-light mb-1">Data: {{ course.created_at.strftime('%d/%m/%Y') }}</p>
+                        {% endif %}
                         <p class="text-light">Valor: R$ {{ '%.2f'|format(course.price) }}</p>
                         <p class="card-text">{{ course.description|truncate(150) }}</p>
                         <a href="{{ url_for('main_bp.course_page', id=course.id) }}" class="btn btn-consult">Ver Detalhes</a>
