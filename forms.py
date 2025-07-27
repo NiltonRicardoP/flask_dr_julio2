@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, TextAreaField, DateField, TimeField, BooleanField, SubmitField, FloatField
-from wtforms.validators import DataRequired, Email, ValidationError, Length, Optional
+from wtforms.validators import DataRequired, Email, ValidationError, Length, Optional, NumberRange
 from datetime import date
 from wtforms import SelectField
 
@@ -42,6 +42,10 @@ class EventForm(FlaskForm):
     ])
     is_active = BooleanField('Evento Ativo', default=True)
     submit = SubmitField('Salvar')
+
+    def validate_end_date(self, field):
+        if self.start_date.data and field.data < self.start_date.data:
+            raise ValidationError('Data de término não pode ser anterior à data de início.')
 
 
 class SettingsForm(FlaskForm):
@@ -106,7 +110,7 @@ class CourseForm(FlaskForm):
     title = StringField('Título', validators=[DataRequired()])
     description = TextAreaField('Descrição', validators=[DataRequired()])
     image = FileField('Imagem', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Apenas imagens são permitidas!')])
-    price = FloatField('Preço', validators=[DataRequired()])
+    price = FloatField('Preço', validators=[DataRequired(), NumberRange(min=0)])
     access_url = StringField('URL de Acesso', validators=[Optional()])
     is_active = BooleanField('Curso Ativo', default=True)
     submit = SubmitField('Salvar')
