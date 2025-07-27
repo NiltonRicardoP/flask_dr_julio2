@@ -2,10 +2,10 @@ from flask import Blueprint, render_template, redirect, url_for, flash, current_
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 import os
-from models import GalleryItem, BillingRecord, Invoice, Convenio, Course, CourseEnrollment
+from models import GalleryItem, BillingRecord, Invoice, Convenio, Course, CourseEnrollment, ContactMessage
 from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm, CourseForm
 from forms import LoginForm, EventForm, SettingsForm
-from models import db, User, Event, Appointment, Settings, Course, CourseEnrollment
+from models import db, User, Event, Appointment, Settings, Course, CourseEnrollment, ContactMessage
 
 # Create Blueprint for the admin routes
 admin_bp = Blueprint('admin_bp', __name__)
@@ -405,3 +405,10 @@ def delete_course(id):
 def enrollments():
     enrollments = CourseEnrollment.query.order_by(CourseEnrollment.created_at.desc()).all()
     return render_template('admin/enrollments.html', enrollments=enrollments)
+
+
+@admin_bp.route('/messages')
+@login_required
+def messages():
+    messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
+    return render_template('admin/messages.html', messages=messages)
