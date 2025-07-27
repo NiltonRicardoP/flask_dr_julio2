@@ -9,7 +9,7 @@
         <div class="col-md-8">
             <h1 class="mb-4">{{ course.title }}</h1>
             {% if course.image %}
-                <img src="{{ url_for('static', filename='uploads/' + course.image) }}" class="img-fluid mb-4" alt="{{ course.title }}">
+                <img src="{{ url_for('static', filename='uploads/courses/' + course.image) }}" class="img-fluid mb-4" alt="{{ course.title }}">
             {% endif %}
             <div>{{ course.description|safe }}</div>
         </div>
