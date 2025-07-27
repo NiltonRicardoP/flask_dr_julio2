@@ -44,6 +44,20 @@ class EventForm(FlaskForm):
     submit = SubmitField('Salvar')
 
 
+class CourseForm(FlaskForm):
+    title = StringField('Título', validators=[DataRequired()])
+    description = TextAreaField('Descrição', validators=[DataRequired()])
+    price = FloatField('Preço', validators=[DataRequired()])
+    start_date = DateField('Data de Início', validators=[DataRequired()])
+    end_date = DateField('Data de Término', validators=[DataRequired()])
+    location = StringField('Local', validators=[DataRequired()])
+    image = FileField('Imagem', validators=[
+        FileAllowed(['jpg', 'png', 'jpeg'], 'Apenas imagens são permitidas!')
+    ])
+    is_active = BooleanField('Curso Ativo', default=True)
+    submit = SubmitField('Salvar')
+
+
 class SettingsForm(FlaskForm):
     site_title = StringField('Título do Site', validators=[DataRequired()])
     contact_email = StringField('Email de Contato', validators=[DataRequired(), Email()])

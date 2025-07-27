@@ -4,8 +4,8 @@ from werkzeug.utils import secure_filename
 import os
 from models import GalleryItem, BillingRecord, Invoice, Convenio
 from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm
-from forms import LoginForm, EventForm, SettingsForm
-from models import db, User, Event, Appointment, Settings
+from forms import LoginForm, EventForm, CourseForm, SettingsForm
+from models import db, User, Event, Course, Appointment, Settings
 
 # Create Blueprint for the admin routes
 admin_bp = Blueprint('admin_bp', __name__)
@@ -130,6 +130,75 @@ def edit_event(id):
         return redirect(url_for('admin_bp.events'))
         
     return render_template('admin/event_form.html', form=form, title='Editar Evento')
+
+
+@admin_bp.route('/courses')
+@login_required
+def courses():
+    courses = Course.query.order_by(Course.start_date.desc()).all()
+    return render_template('admin/courses.html', courses=courses)
+
+
+@admin_bp.route('/courses/add', methods=['GET', 'POST'])
+@login_required
+def add_course():
+    form = CourseForm()
+
+    if form.validate_on_submit():
+        filename = None
+        if form.image.data:
+            filename = secure_filename(form.image.data.filename)
+            form.image.data.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+
+        course = Course(
+            title=form.title.data,
+            description=form.description.data,
+            price=form.price.data,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data,
+            location=form.location.data,
+            image=filename,
+            is_active=form.is_active.data
+        )
+
+        db.session.add(course)
+        db.session.commit()
+        flash('Curso adicionado com sucesso!', 'success')
+        return redirect(url_for('admin_bp.courses'))
+
+    return render_template('admin/course_form.html', form=form, title='Adicionar Curso', course=None)
+
+
+@admin_bp.route('/courses/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_course(id):
+    course = Course.query.get_or_404(id)
+    form = CourseForm(obj=course)
+
+    if form.validate_on_submit():
+        course.title = form.title.data
+        course.description = form.description.data
+        course.price = form.price.data
+        course.start_date = form.start_date.data
+        course.end_date = form.end_date.data
+        course.location = form.location.data
+        course.is_active = form.is_active.data
+
+        if form.image.data:
+            if course.image:
+                try:
+                    os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], course.image))
+                except:
+                    pass
+            filename = secure_filename(form.image.data.filename)
+            form.image.data.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+            course.image = filename
+
+        db.session.commit()
+        flash('Curso atualizado com sucesso!', 'success')
+        return redirect(url_for('admin_bp.courses'))
+
+    return render_template('admin/course_form.html', form=form, title='Editar Curso', course=course)
 
 @admin_bp.route('/settings', methods=['GET', 'POST'])
 @login_required
