@@ -128,7 +128,7 @@ class Course(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"<Course {self.title}>"
+        return f'<Course {self.title}>'
 
 
 class CourseEnrollment(db.Model):
