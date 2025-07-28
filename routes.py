@@ -106,16 +106,16 @@ def events():
                           past_events=past_events)
 
 
-@main_bp.route('/courses')
-def courses():
-    """List active courses ordered by start date if available."""
+@main_bp.route('/courses', endpoint='courses')
+def list_courses():
+    """List active courses ordered by start date when available."""
     settings = Settings.query.first()
-    order_field = getattr(Course, 'start_date', Course.created_at)
-    courses = (
-        Course.query.filter_by(is_active=True)
-        .order_by(order_field)
-        .all()
-    )
+    query = Course.query.filter_by(is_active=True)
+    if hasattr(Course, "start_date"):
+        query = query.order_by(Course.start_date)
+    else:
+        query = query.order_by(Course.created_at)
+    courses = query.all()
     return render_template('courses.html', courses=courses, settings=settings)
 
 
@@ -131,7 +131,7 @@ def active_courses():
 @main_bp.route('/cursos')
 def cursos():
     """Portuguese alias for the courses page."""
-    return courses()
+    return list_courses()
 
 
 @main_bp.route('/courses/<int:id>', methods=['GET', 'POST'])
