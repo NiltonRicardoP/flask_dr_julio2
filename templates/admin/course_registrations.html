@@ -17,6 +17,7 @@
                             <th>Nome</th>
                             <th>Email</th>
                             <th>Telefone</th>
+                            <th>Método</th>
                             <th>Status</th>
                             <th>Data</th>
                         </tr>
@@ -28,7 +29,21 @@
                             <td>{{ r.name }}</td>
                             <td>{{ r.email }}</td>
                             <td>{{ r.phone or '-' }}</td>
-                            <td>{{ r.payment_status or '-' }}</td>
+                            <td>{{ r.payment_method or '-' }}</td>
+                            <td>
+                                {{ r.payment_status or '-' }}
+                                <div class="btn-group btn-group-sm ms-2" role="group">
+                                    <a href="{{ url_for('admin_bp.update_course_registration_status', id=r.id, status='paid') }}" class="btn btn-outline-success" title="Marcar como Pago">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin_bp.update_course_registration_status', id=r.id, status='pending') }}" class="btn btn-outline-warning" title="Marcar como Pendente">
+                                        <i class="fas fa-clock"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin_bp.update_course_registration_status', id=r.id, status='failed') }}" class="btn btn-outline-danger" title="Marcar como Falhou">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                </div>
+                            </td>
                             <td>{{ r.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
                         </tr>
                         {% endfor %}
