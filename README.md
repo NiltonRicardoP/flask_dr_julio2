@@ -52,9 +52,15 @@ Não existem variáveis específicas para cursos ou pagamentos até o momento.
 
 ## Cursos
 
-Os cursos disponíveis são exibidos na página `/cursos`. Cada curso tem uma
-página de detalhes onde o visitante pode se inscrever informando nome, e‑mail e
+Os cursos disponíveis são exibidos na página `/cursos` (ou `/courses` em inglês).
+Cada curso tem uma página de detalhes onde o visitante pode se inscrever informando nome, e‑mail e
 telefone. Após o envio, a inscrição é registrada no banco de dados.
+
+Para visualizar a lista de cursos basta iniciar a aplicação e acessar:
+
+```
+http://localhost:5000/courses
+```
 O cadastro de cursos é representado pelo modelo `Course`, que armazena título,
 descrição, imagem, preço, link de acesso e se o curso está ativo.
 
