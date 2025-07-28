@@ -2,10 +2,32 @@ from flask import Blueprint, render_template, redirect, url_for, flash, current_
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 import os
-from models import GalleryItem, BillingRecord, Invoice, Convenio
-from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm
-from forms import LoginForm, EventForm, CourseForm, CourseRegistrationForm, SettingsForm
-from models import db, User, Event, Course, CourseRegistration, Appointment, Settings
+
+
+from models import (
+    GalleryItem,
+    BillingRecord,
+    Invoice,
+    Convenio,
+    Course,
+    CourseEnrollment,
+    CourseRegistration,
+    Payment,
+    ContactMessage,
+)
+from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm, CourseForm
+from forms import LoginForm, EventForm, SettingsForm
+from models import (
+    db,
+    User,
+    Event,
+    Appointment,
+    Settings,
+    Course,
+    CourseEnrollment,
+    CourseRegistration,
+)
+
 
 # Create Blueprint for the admin routes
 admin_bp = Blueprint('admin_bp', __name__)
@@ -35,15 +57,37 @@ def logout():
 @admin_bp.route('/')
 @login_required
 def dashboard():
-    # Get recent appointments
-    appointments = Appointment.query.order_by(Appointment.created_at.desc()).limit(5).all()
-    
-    # Get upcoming events
-    upcoming_events = Event.get_upcoming_events()[:5]
-    
-    return render_template('admin/dashboard.html', 
-                          appointments=appointments, 
-                          upcoming_events=upcoming_events)
+    """Admin dashboard summary information."""
+    # Counts
+    appointments_count = Appointment.query.count()
+    events_count = Event.query.count()
+    gallery_count = GalleryItem.query.count()
+
+    # Optional contacts_count if ContactMessage model exists
+    try:
+        contacts_count = ContactMessage.query.count()
+    except Exception:
+        contacts_count = 0
+
+    # Recent records
+    recent_appointments = (
+        Appointment.query.order_by(Appointment.created_at.desc()).limit(5).all()
+    )
+    recent_contacts = (
+        ContactMessage.query.order_by(ContactMessage.created_at.desc()).limit(5).all()
+        if contacts_count
+        else []
+    )
+
+    return render_template(
+        'admin/dashboard.html',
+        appointments_count=appointments_count,
+        events_count=events_count,
+        gallery_count=gallery_count,
+        contacts_count=contacts_count,
+        recent_appointments=recent_appointments,
+        recent_contacts=recent_contacts,
+    )
 
 @admin_bp.route('/appointments')
 @login_required
@@ -118,7 +162,7 @@ def edit_event(id):
                 # Delete old image
                 try:
                     os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], event.image))
-                except:
+                except FileNotFoundError:
                     pass
                     
             filename = secure_filename(form.image.data.filename)
@@ -188,7 +232,9 @@ def edit_course(id):
             if course.image:
                 try:
                     os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], course.image))
-                except:
+
+                except FileNotFoundError:
+
                     pass
             filename = secure_filename(form.image.data.filename)
             form.image.data.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
@@ -206,6 +252,21 @@ def edit_course(id):
 def course_registrations():
     registrations = CourseRegistration.query.order_by(CourseRegistration.created_at.desc()).all()
     return render_template('admin/course_registrations.html', registrations=registrations)
+
+
+@admin_bp.route('/course_registration/<int:id>/status/<status>')
+@login_required
+def update_course_registration_status(id, status):
+    registration = CourseRegistration.query.get_or_404(id)
+
+    if status in ['pending', 'paid', 'failed']:
+        registration.payment_status = status
+        db.session.commit()
+        flash('Status atualizado com sucesso!', 'success')
+    else:
+        flash('Status inválido', 'danger')
+
+    return redirect(url_for('admin_bp.course_registrations'))
 
 @admin_bp.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -402,3 +463,110 @@ def edit_convenio(id):
         flash('Convênio atualizado!', 'success')
         return redirect(url_for('admin_bp.convenios'))
     return render_template('admin/convenio_form.html', form=form, title='Editar Convênio')
+
+
+@admin_bp.route('/courses')
+@login_required
+def courses():
+    courses = Course.query.order_by(Course.created_at.desc()).all()
+    return render_template('admin/courses.html', courses=courses)
+
+
+@admin_bp.route('/courses/add', methods=['GET', 'POST'])
+@login_required
+def add_course():
+    form = CourseForm()
+    if form.validate_on_submit():
+        filename = None
+        if form.image.data:
+            filename = secure_filename(form.image.data.filename)
+            course_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'courses')
+            os.makedirs(course_folder, exist_ok=True)
+            form.image.data.save(os.path.join(course_folder, filename))
+        course = Course(
+            title=form.title.data,
+            description=form.description.data,
+            price=form.price.data,
+            access_url=form.access_url.data,
+            image=filename,
+            is_active=form.is_active.data
+        )
+        db.session.add(course)
+        db.session.commit()
+        flash('Curso adicionado!', 'success')
+        return redirect(url_for('admin_bp.courses'))
+    return render_template('admin/course_form.html', form=form, title='Novo Curso')
+
+
+@admin_bp.route('/courses/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_course(id):
+    course = Course.query.get_or_404(id)
+    form = CourseForm(obj=course)
+    if form.validate_on_submit():
+        course.title = form.title.data
+        course.description = form.description.data
+        course.price = form.price.data
+        course.access_url = form.access_url.data
+        course.is_active = form.is_active.data
+        if form.image.data:
+            if course.image:
+                try:
+                    os.remove(os.path.join(current_app.root_path, 'static', 'uploads', 'courses', course.image))
+                except Exception:
+                    pass
+            filename = secure_filename(form.image.data.filename)
+            course_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'courses')
+            os.makedirs(course_folder, exist_ok=True)
+            form.image.data.save(os.path.join(course_folder, filename))
+            course.image = filename
+        db.session.commit()
+        flash('Curso atualizado!', 'success')
+        return redirect(url_for('admin_bp.courses'))
+    return render_template('admin/course_form.html', form=form, title='Editar Curso', course=course)
+
+
+@admin_bp.route('/courses/delete/<int:id>', methods=['POST'])
+@login_required
+def delete_course(id):
+    course = Course.query.get_or_404(id)
+    if course.image:
+        try:
+            os.remove(os.path.join(current_app.root_path, 'static', 'uploads', 'courses', course.image))
+        except Exception:
+            pass
+    db.session.delete(course)
+    db.session.commit()
+    flash('Curso removido!', 'success')
+    return redirect(url_for('admin_bp.courses'))
+
+
+@admin_bp.route('/enrollments')
+@login_required
+def enrollments():
+    enrollments = CourseEnrollment.query.order_by(CourseEnrollment.created_at.desc()).all()
+    return render_template('admin/enrollments.html', enrollments=enrollments)
+
+
+@admin_bp.route('/registrations')
+@login_required
+def registrations():
+    regs = CourseRegistration.query.order_by(CourseRegistration.created_at.desc()).all()
+    return render_template('admin/registrations.html', registrations=regs)
+
+
+@admin_bp.route('/messages')
+@login_required
+def messages():
+    messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
+    return render_template('admin/messages.html', messages=messages)
+
+
+@admin_bp.route('/messages/<int:id>/delete', methods=['POST'])
+@login_required
+def delete_message(id):
+    message = ContactMessage.query.get_or_404(id)
+    db.session.delete(message)
+    db.session.commit()
+    flash('Mensagem removida!', 'success')
+    return redirect(url_for('admin_bp.messages'))

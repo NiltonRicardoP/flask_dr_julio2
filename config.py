@@ -23,3 +23,11 @@ class Config:
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME', '')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'Dr. Julio Vasconcelos <noreply@drjulio.com>')
+
+    # Stripe configuration
+    STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
+    STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
+
+    # Pagar.me configuration
+    PAGARME_API_KEY = os.environ.get('PAGARME_API_KEY', '')
+    PAGARME_BASE_URL = os.environ.get('PAGARME_BASE_URL', 'https://api.pagar.me/1')

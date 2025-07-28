@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
 from datetime import datetime
-from urllib.parse import quote
 
-from forms import ContactForm, AppointmentForm, CourseRegistrationForm
-from models import db, Event, Course, CourseRegistration, Appointment, Settings
+from models import db, Course, CourseRegistration
+from forms import CourseRegistrationForm, ContactForm, AppointmentForm
+from models import Event, ContactMessage, Appointment, Settings
+
 
 # Create a Blueprint for the main routes
 main_bp = Blueprint('main_bp', __name__)
@@ -23,15 +24,24 @@ def about():
 def contact():
     form = ContactForm()
     settings = Settings.query.first()
-    
+
     if form.validate_on_submit():
-        # Process contact form submission
+        message = ContactMessage(
+            name=form.name.data,
+            email=form.email.data,
+            subject=form.subject.data,
+            message=form.message.data,
+        )
         try:
+            db.session.add(message)
+            db.session.commit()
+
             # Send email functionality would go here
-            # For now, just display a success message
+
             flash('Sua mensagem foi enviada com sucesso! Entraremos em contato em breve.', 'success')
             return redirect(url_for('main_bp.contact'))
         except Exception as e:
+            db.session.rollback()
             flash(f'Ocorreu um erro ao enviar sua mensagem: {str(e)}', 'danger')
             
     return render_template('contact.html', form=form, settings=settings)
@@ -71,50 +81,13 @@ def events():
     settings = Settings.query.first()
     upcoming_events = Event.get_upcoming_events()
     past_events = Event.get_past_events()
-    return render_template('events.html', 
-                          settings=settings, 
-                          upcoming_events=upcoming_events, 
+    return render_template('events.html',
+                          settings=settings,
+                          upcoming_events=upcoming_events,
                           past_events=past_events)
 
 
-@main_bp.route('/courses')
-def courses():
-    settings = Settings.query.first()
-    courses = Course.query.filter_by(is_active=True).order_by(Course.start_date).all()
-    return render_template('courses.html', settings=settings, courses=courses)
 
-
-@main_bp.route('/courses/<int:course_id>/register', methods=['GET', 'POST'])
-def register_course(course_id):
-    course = Course.query.get_or_404(course_id)
-    form = CourseRegistrationForm()
-    settings = Settings.query.first()
-
-    if form.validate_on_submit():
-        registration = CourseRegistration(
-            course_id=course.id,
-            name=form.name.data,
-            email=form.email.data,
-            phone=form.phone.data
-        )
-        db.session.add(registration)
-        db.session.commit()
-
-        whatsapp_number = ''.join(filter(str.isdigit, settings.contact_phone or ''))
-        if whatsapp_number:
-            msg = (
-                f"Nova inscrição no curso {course.title}!\n"
-                f"Nome: {registration.name}\n"
-                f"Email: {registration.email}\n"
-                f"Telefone: {registration.phone or ''}"
-            )
-            whatsapp_url = f"https://wa.me/{whatsapp_number}?text={quote(msg)}"
-            return redirect(whatsapp_url)
-
-        flash('Inscrição realizada com sucesso!', 'success')
-        return redirect(url_for('main_bp.courses'))
-
-    return render_template('course_register.html', form=form, course=course, settings=settings)
 
 @main_bp.context_processor
 def inject_settings():
@@ -129,5 +102,42 @@ def gallery():
     items = GalleryItem.query.order_by(GalleryItem.created_at.desc()).all()
     settings = Settings.query.first()
     return render_template('gallery.html', items=items, settings=settings)
+
+
+@main_bp.route('/courses/<int:id>/register', methods=['GET', 'POST'])
+def register_course(id):
+    course = Course.query.get_or_404(id)
+    form = CourseRegistrationForm()
+    if form.validate_on_submit():
+        registration = CourseRegistration(
+            course_id=id,
+            participant_name=form.participant_name.data,
+            participant_email=form.participant_email.data,
+            payment_method=form.payment_method.data,
+        )
+        db.session.add(registration)
+        db.session.commit()
+
+        try:
+            from pagarme_service import create_transaction
+
+            result = create_transaction(
+                course.price,
+                card_number=form.card_number.data,
+                card_expiration_date=form.card_expiration.data,
+                card_cvv=form.card_cvv.data,
+                card_holder_name=form.participant_name.data,
+            )
+            registration.transaction_id = str(result.get('id'))
+            registration.payment_status = result.get('status', 'pending')
+        except Exception:
+            registration.payment_status = 'failed'
+        finally:
+            db.session.commit()
+
+        flash('Inscrição realizada com sucesso!', 'success')
+        return redirect(url_for('main_bp.course_page', id=id))
+
+    return render_template('course_register.html', form=form, course=course)
 
 
