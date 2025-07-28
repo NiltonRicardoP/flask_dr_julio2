@@ -16,13 +16,40 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ course.title }}</h5>
                         {% if course.start_date %}
-                        <p class="text-light mb-1">Início: {{ course.start_date.strftime('%d/%m/%Y') }}</p>
-                        {% else %}
-                        <p class="text-light mb-1">Data: {{ course.created_at.strftime('%d/%m/%Y') }}</p>
+                            <p class="text-light mb-1">
+                                <i class="far fa-calendar-alt me-2"></i> {{ course.start_date.strftime('%d/%m/%Y') }}
+                            </p>
                         {% endif %}
-                        <p class="text-light">Valor: R$ {{ '%.2f'|format(course.price) }}</p>
-                        <p class="card-text">{{ course.description|truncate(150) }}</p>
-                        <a href="{{ url_for('main_bp.course_page', id=course.id) }}" class="btn btn-consult">Ver Detalhes</a>
+                        <p class="text-light">
+                            <i class="fas fa-money-bill-wave me-2"></i> R$ {{ '%.2f'|format(course.price) }}
+                        </p>
+                        <p class="card-text">{{ course.description|truncate(200) }}</p>
+                        <button type="button" class="btn btn-consult" data-bs-toggle="modal" data-bs-target="#courseModal{{ course.id }}">
+                            Ver Detalhes
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Modal -->
+            <div class="modal fade" id="courseModal{{ course.id }}" tabindex="-1" aria-labelledby="courseModalLabel{{ course.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content" style="background-color:#1e293b; color:white;">
+                        <div class="modal-header" style="border-bottom-color:#2d3748;">
+                            <h5 class="modal-title" id="courseModalLabel{{ course.id }}">{{ course.title }}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            {% if course.image %}
+                                <img src="{{ url_for('static', filename='uploads/courses/' + course.image) }}" class="img-fluid mb-3 w-100" alt="{{ course.title }}">
+                            {% endif %}
+                            <p><strong>Valor:</strong> R$ {{ '%.2f'|format(course.price) }}</p>
+                            <div>{{ course.description|safe }}</div>
+                        </div>
+                        <div class="modal-footer" style="border-top-color:#2d3748;">
+                            <a href="{{ url_for('main_bp.course_page', id=course.id) }}" class="btn btn-primary">Inscrever-se</a>
+                            <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Fechar</button>
+                        </div>
                     </div>
                 </div>
             </div>

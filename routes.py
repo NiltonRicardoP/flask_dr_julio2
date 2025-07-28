@@ -108,9 +108,14 @@ def events():
 
 @main_bp.route('/courses')
 def courses():
-    """Public list of active courses."""
+    """List active courses ordered by start date if available."""
     settings = Settings.query.first()
-    courses = Course.query.filter_by(is_active=True).all()
+    order_field = getattr(Course, 'start_date', Course.created_at)
+    courses = (
+        Course.query.filter_by(is_active=True)
+        .order_by(order_field)
+        .all()
+    )
     return render_template('courses.html', courses=courses, settings=settings)
 
 
