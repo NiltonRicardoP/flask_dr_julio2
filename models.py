@@ -66,6 +66,7 @@ class CourseRegistration(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
+
     payment_method = db.Column(db.String(50))
     payment_status = db.Column(db.String(20), default='pending')
     transaction_id = db.Column(db.String(100))

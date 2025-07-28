@@ -7,5 +7,30 @@
 <div class="container py-5 mt-5">
     <h1 class="text-center section-title">Cursos</h1>
 
+    {% if courses %}
+        <div class="row">
+            {% for course in courses %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow" style="background-color: #1e293b; border: none;">
+                    {% if course.image %}
+                        <img src="{{ url_for('static', filename='uploads/' + course.image) }}" class="card-img-top" alt="{{ course.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ course.title }}</h5>
+                        <p class="card-text text-muted">
+                            <i class="far fa-calendar-alt me-2"></i> {{ course.start_date.strftime('%d/%m/%Y') }} - {{ course.end_date.strftime('%d/%m/%Y') }}<br>
+                            <i class="fas fa-map-marker-alt me-2"></i> {{ course.location }}
+                        </p>
+                        <p class="card-text">{{ course.description|truncate(200) }}</p>
+                        <a href="{{ url_for('main_bp.register_course', course_id=course.id) }}" class="btn btn-primary">Inscreva-se</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">Nenhum curso disponível no momento.</div>
+    {% endif %}
+
 </div>
 {% endblock %}

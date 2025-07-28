@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 import os
 
+
 from models import (
     GalleryItem,
     BillingRecord,
@@ -231,7 +232,9 @@ def edit_course(id):
             if course.image:
                 try:
                     os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], course.image))
+
                 except FileNotFoundError:
+
                     pass
             filename = secure_filename(form.image.data.filename)
             form.image.data.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
 from datetime import datetime
+
 from models import db, Course, CourseRegistration
 from forms import CourseRegistrationForm, ContactForm, AppointmentForm
 from models import Event, ContactMessage, Appointment, Settings
