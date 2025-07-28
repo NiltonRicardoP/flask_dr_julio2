@@ -15,8 +15,8 @@ from models import (
     Payment,
     ContactMessage,
 )
-from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm, CourseForm
-from forms import LoginForm, EventForm, SettingsForm
+from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm
+from forms import LoginForm, EventForm, CourseForm, SettingsForm
 from models import (
     db,
     User,
