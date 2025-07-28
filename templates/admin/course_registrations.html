@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+{% block title %}Inscrições{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Inscrições em Cursos</h1>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        {% if registrations %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Curso</th>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Telefone</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in registrations %}
+                        <tr>
+                            <td>{{ r.course.title }}</td>
+                            <td>{{ r.name }}</td>
+                            <td>{{ r.email }}</td>
+                            <td>{{ r.phone or '-' }}</td>
+                            <td>{{ r.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">Nenhuma inscrição encontrada.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

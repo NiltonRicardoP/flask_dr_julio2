@@ -6,7 +6,7 @@ import os
 
 from config import Config
 from extensions import db  # Correto: db importado do extensions.py
-from models import User, Event, Course, Appointment, Settings
+from models import User, Event, Course, CourseRegistration, Appointment, Settings
 from forms import LoginForm, AppointmentForm, ContactForm, EventForm, SettingsForm
 from routes import main_bp
 from admin_routes import admin_bp

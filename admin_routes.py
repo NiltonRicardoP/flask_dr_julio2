@@ -4,8 +4,8 @@ from werkzeug.utils import secure_filename
 import os
 from models import GalleryItem, BillingRecord, Invoice, Convenio
 from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm
-from forms import LoginForm, EventForm, CourseForm, SettingsForm
-from models import db, User, Event, Course, Appointment, Settings
+from forms import LoginForm, EventForm, CourseForm, CourseRegistrationForm, SettingsForm
+from models import db, User, Event, Course, CourseRegistration, Appointment, Settings
 
 # Create Blueprint for the admin routes
 admin_bp = Blueprint('admin_bp', __name__)
@@ -199,6 +199,13 @@ def edit_course(id):
         return redirect(url_for('admin_bp.courses'))
 
     return render_template('admin/course_form.html', form=form, title='Editar Curso', course=course)
+
+
+@admin_bp.route('/course_registrations')
+@login_required
+def course_registrations():
+    registrations = CourseRegistration.query.order_by(CourseRegistration.created_at.desc()).all()
+    return render_template('admin/course_registrations.html', registrations=registrations)
 
 @admin_bp.route('/settings', methods=['GET', 'POST'])
 @login_required

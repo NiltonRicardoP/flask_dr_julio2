@@ -58,6 +58,13 @@ class CourseForm(FlaskForm):
     submit = SubmitField('Salvar')
 
 
+class CourseRegistrationForm(FlaskForm):
+    name = StringField('Nome Completo', validators=[DataRequired(), Length(min=3, max=100)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    phone = StringField('Telefone', validators=[Optional(), Length(min=8, max=20)])
+    submit = SubmitField('Inscrever-se')
+
+
 class SettingsForm(FlaskForm):
     site_title = StringField('Título do Site', validators=[DataRequired()])
     contact_email = StringField('Email de Contato', validators=[DataRequired(), Email()])
