@@ -7,6 +7,7 @@ from forms import (
     CourseEnrollmentForm,
     ConfirmPaymentForm,
     RegistrationForm,
+    CourseRegistrationForm,
 )
 from models import (
     db,
@@ -17,6 +18,8 @@ from models import (
     CourseEnrollment,
     PaymentTransaction,
     CoursePurchase,
+    CourseRegistration,
+    Payment,
     ContactMessage,
 )
 
@@ -116,7 +119,7 @@ def list_courses():
     else:
         query = query.order_by(Course.created_at)
     courses = query.all()
-    return render_template('courses.html', courses=courses, settings=settings)
+    return render_template('public_courses.html', courses=courses, settings=settings)
 
 
 # New route listing active courses ordered by start_date
@@ -125,7 +128,7 @@ def active_courses():
     """List upcoming courses using Course helper methods."""
     settings = Settings.query.first()
     courses = Course.get_upcoming_courses()
-    return render_template('courses.html', courses=courses, settings=settings)
+    return render_template('public_courses.html', courses=courses, settings=settings)
 
 
 @main_bp.route('/cursos')
@@ -134,16 +137,61 @@ def cursos():
     return list_courses()
 
 
-@main_bp.route('/courses/<int:id>', methods=['GET', 'POST'])
+@main_bp.route('/courses/<int:id>')
 def course_page(id):
-    """Display a single course with a simple registration form."""
+    """Show course details with a link to register."""
     course = Course.query.get_or_404(id)
     settings = Settings.query.first()
-    form = RegistrationForm()
+    return render_template('public_course_detail.html', course=course, settings=settings)
+
+
+@main_bp.route('/courses/<int:id>/register', methods=['GET', 'POST'])
+def register_course(id):
+    """Process course registration and payment via Stripe."""
+    course = Course.query.get_or_404(id)
+    settings = Settings.query.first()
+    form = CourseRegistrationForm()
     if form.validate_on_submit():
-        flash('Inscrição registrada com sucesso!', 'success')
-        return redirect(url_for('main_bp.course_page', id=id))
-    return render_template('course_detail.html', course=course, form=form, settings=settings)
+        registration = CourseRegistration(
+            course_id=course.id,
+            participant_name=form.participant_name.data,
+            participant_email=form.participant_email.data,
+        )
+        db.session.add(registration)
+        db.session.commit()
+
+        if stripe and current_app.config.get('STRIPE_SECRET_KEY'):
+            stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'brl',
+                        'product_data': {'name': course.title},
+                        'unit_amount': int(course.price * 100)
+                    },
+                    'quantity': 1
+                }],
+                mode='payment',
+                success_url=url_for('main_bp.registration_success', registration_id=registration.id, _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+                cancel_url=url_for('main_bp.register_course', id=id, _external=True)
+            )
+            payment = Payment(
+                registration_id=registration.id,
+                amount=course.price,
+                provider='stripe',
+                status='pending',
+                transaction_id=session.id,
+            )
+            db.session.add(payment)
+            db.session.commit()
+            return redirect(session.url, code=303)
+        else:
+            registration.payment_status = 'paid'
+            db.session.commit()
+            return redirect(url_for('main_bp.registration_success', registration_id=registration.id))
+
+    return render_template('course_register.html', course=course, form=form, settings=settings)
 
 
 @main_bp.route('/cursos/<int:id>', methods=['GET', 'POST'])
@@ -236,6 +284,20 @@ def purchase_success():
         db.session.commit()
 
     return render_template('purchase_success.html', purchase=purchase)
+
+
+@main_bp.route('/registration/<int:registration_id>/success')
+def registration_success(registration_id):
+    registration = CourseRegistration.query.get_or_404(registration_id)
+    settings = Settings.query.first()
+    if registration.payment_status != 'paid' and stripe and registration.payments:
+        stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
+        session = stripe.checkout.Session.retrieve(registration.payments[0].transaction_id)
+        if session and session.payment_status == 'paid':
+            registration.payment_status = 'paid'
+            registration.payments[0].status = 'paid'
+            db.session.commit()
+    return render_template('registration_success.html', registration=registration, settings=settings)
 
 
 @main_bp.route('/curso/acesso/<int:enrollment_id>')
