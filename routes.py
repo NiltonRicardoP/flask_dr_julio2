@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from datetime import datetime
+from urllib.parse import quote
 
-from forms import ContactForm, AppointmentForm
-from models import db, Event, Appointment, Settings
+from forms import ContactForm, AppointmentForm, CourseRegistrationForm
+from models import db, Event, Course, CourseRegistration, Appointment, Settings
 
 # Create a Blueprint for the main routes
 main_bp = Blueprint('main_bp', __name__)
@@ -74,6 +75,46 @@ def events():
                           settings=settings, 
                           upcoming_events=upcoming_events, 
                           past_events=past_events)
+
+
+@main_bp.route('/courses')
+def courses():
+    settings = Settings.query.first()
+    courses = Course.query.filter_by(is_active=True).order_by(Course.start_date).all()
+    return render_template('courses.html', settings=settings, courses=courses)
+
+
+@main_bp.route('/courses/<int:course_id>/register', methods=['GET', 'POST'])
+def register_course(course_id):
+    course = Course.query.get_or_404(course_id)
+    form = CourseRegistrationForm()
+    settings = Settings.query.first()
+
+    if form.validate_on_submit():
+        registration = CourseRegistration(
+            course_id=course.id,
+            name=form.name.data,
+            email=form.email.data,
+            phone=form.phone.data
+        )
+        db.session.add(registration)
+        db.session.commit()
+
+        whatsapp_number = ''.join(filter(str.isdigit, settings.contact_phone or ''))
+        if whatsapp_number:
+            msg = (
+                f"Nova inscrição no curso {course.title}!\n"
+                f"Nome: {registration.name}\n"
+                f"Email: {registration.email}\n"
+                f"Telefone: {registration.phone or ''}"
+            )
+            whatsapp_url = f"https://wa.me/{whatsapp_number}?text={quote(msg)}"
+            return redirect(whatsapp_url)
+
+        flash('Inscrição realizada com sucesso!', 'success')
+        return redirect(url_for('main_bp.courses'))
+
+    return render_template('course_register.html', form=form, course=course, settings=settings)
 
 @main_bp.context_processor
 def inject_settings():
