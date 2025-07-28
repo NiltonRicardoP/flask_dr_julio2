@@ -41,6 +41,16 @@ flask db upgrade
 ```
 
 Se estiver apenas atualizando o repositório execute `flask db upgrade` para aplicar as migrações existentes.
+
+### Após atualizar o código
+
+Sempre que fizer pull de novas alterações do repositório execute:
+
+```bash
+flask db upgrade
+```
+
+Isso mantém o banco de dados alinhado com os modelos mais recentes e evita erros em funcionalidades como o gerenciamento de cursos.
 ## Variáveis de ambiente
 
 Crie um arquivo `.env` para definir as configurações sensíveis utilizadas pelo
