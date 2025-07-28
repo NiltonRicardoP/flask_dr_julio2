@@ -112,6 +112,7 @@ def register_course(id):
             course_id=id,
             participant_name=form.participant_name.data,
             participant_email=form.participant_email.data,
+            payment_method=form.payment_method.data,
         )
         db.session.add(registration)
         db.session.commit()

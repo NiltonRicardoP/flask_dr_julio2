@@ -250,6 +250,21 @@ def course_registrations():
     registrations = CourseRegistration.query.order_by(CourseRegistration.created_at.desc()).all()
     return render_template('admin/course_registrations.html', registrations=registrations)
 
+
+@admin_bp.route('/course_registration/<int:id>/status/<status>')
+@login_required
+def update_course_registration_status(id, status):
+    registration = CourseRegistration.query.get_or_404(id)
+
+    if status in ['pending', 'paid', 'failed']:
+        registration.payment_status = status
+        db.session.commit()
+        flash('Status atualizado com sucesso!', 'success')
+    else:
+        flash('Status inválido', 'danger')
+
+    return redirect(url_for('admin_bp.course_registrations'))
+
 @admin_bp.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():

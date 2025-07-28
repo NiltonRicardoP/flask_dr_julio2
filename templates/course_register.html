@@ -15,6 +15,10 @@
             {{ form.participant_email(class="form-control bg-darker text-white") }}
         </div>
         <div class="mb-3">
+            {{ form.payment_method.label(class="form-label text-light") }}
+            {{ form.payment_method(class="form-select bg-darker text-white") }}
+        </div>
+        <div class="mb-3">
             {{ form.card_number.label(class="form-label text-light") }}
             {{ form.card_number(class="form-control bg-darker text-white") }}
         </div>
