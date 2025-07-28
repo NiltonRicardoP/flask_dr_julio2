@@ -56,20 +56,37 @@ def logout():
 @admin_bp.route('/')
 @login_required
 def dashboard():
-    # Get recent appointments
-    appointments = Appointment.query.order_by(Appointment.created_at.desc()).limit(5).all()
+    """Admin dashboard summary information."""
+    # Counts
+    appointments_count = Appointment.query.count()
+    events_count = Event.query.count()
+    gallery_count = GalleryItem.query.count()
 
-    # Get upcoming events
-    upcoming_events = Event.get_upcoming_events()[:5]
+    # Optional contacts_count if ContactMessage model exists
+    try:
+        contacts_count = ContactMessage.query.count()
+    except Exception:
+        contacts_count = 0
 
-    contacts_count = ContactMessage.query.count()
-    recent_contacts = ContactMessage.query.order_by(ContactMessage.created_at.desc()).limit(5).all()
+    # Recent records
+    recent_appointments = (
+        Appointment.query.order_by(Appointment.created_at.desc()).limit(5).all()
+    )
+    recent_contacts = (
+        ContactMessage.query.order_by(ContactMessage.created_at.desc()).limit(5).all()
+        if contacts_count
+        else []
+    )
 
-    return render_template('admin/dashboard.html',
-                          appointments=appointments,
-                          upcoming_events=upcoming_events,
-                          contacts_count=contacts_count,
-                          recent_contacts=recent_contacts)
+    return render_template(
+        'admin/dashboard.html',
+        appointments_count=appointments_count,
+        events_count=events_count,
+        gallery_count=gallery_count,
+        contacts_count=contacts_count,
+        recent_appointments=recent_appointments,
+        recent_contacts=recent_contacts,
+    )
 
 @admin_bp.route('/appointments')
 @login_required
