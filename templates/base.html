@@ -73,7 +73,7 @@
             <div class="row">
                 <div class="col-md-4">
                     <h5>Dr. Julio Vasconcelos</h5>
-                    <p>{% if settings %}{{ settings.about_text|truncate(100) }}{% endif %}</p>
+                    <p>{% if settings and settings.about_text %}{{ settings.about_text|truncate(100) }}{% endif %}</p>
                 </div>
                 <div class="col-md-4">
                     <h5>Contato</h5>
