@@ -107,6 +107,10 @@ def gallery():
 @main_bp.route('/courses/<int:id>/register', methods=['GET', 'POST'])
 def register_course(id):
     course = Course.query.get_or_404(id)
+    if not course.is_active:
+        flash('Curso inativo.', 'danger')
+        return redirect(url_for('main_bp.courses'))
+
     form = CourseRegistrationForm()
     if form.validate_on_submit():
         registration = CourseRegistration(
