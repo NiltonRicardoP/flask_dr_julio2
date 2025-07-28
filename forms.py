@@ -133,3 +133,9 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     submit = SubmitField('Inscreva-se')
 
+
+class CourseRegistrationForm(FlaskForm):
+    participant_name = StringField('Nome', validators=[DataRequired(), Length(min=3, max=100)])
+    participant_email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Inscrever-se')
+
