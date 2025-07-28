@@ -28,17 +28,16 @@ Para produção é possível utilizar o `Procfile` com Gunicorn. O arquivo `runt
 
 ### Migrações
 
-As migrações do banco ficam na pasta `migrations/`. Para criar ou atualizar as
-tabelas (incluindo as de cursos) execute, com o ambiente virtual ativo e a
-variável `FLASK_APP` apontando para `app.py`:
+
+As migrações do banco ficam na pasta `migrations/`. Com o ambiente virtual ativo e a variável `FLASK_APP` apontando para `app.py`, gere uma nova migração sempre que modificar os modelos e aplique-a:
 
 ```bash
 export FLASK_APP=app.py
+flask db migrate -m "Nova migração"
 flask db upgrade
 ```
 
-Após atualizar o repositório lembre‑se de rodar `flask db upgrade` para aplicar a nova migração que cria as tabelas de cursos.
-
+Se estiver apenas atualizando o repositório execute `flask db upgrade` para aplicar as migrações existentes.
 ## Variáveis de ambiente
 
 Crie um arquivo `.env` para definir as configurações sensíveis utilizadas pelo
@@ -61,10 +60,11 @@ descrição, imagem, preço, link de acesso e se o curso está ativo.
 
 ### Administração de cursos
 
-No painel administrativo existem novas opções para **Cursos** e **Inscrições**.
-Usuários administradores podem criar, editar e remover cursos, além de
-acompanhar todas as inscrições recebidas. Os principais caminhos são:
-`/admin/courses` (lista), `/admin/courses/add`, `/admin/courses/edit/<id>` e
+No painel administrativo existem opções para **Cursos** e **Inscrições**.
+Para cadastrar um novo curso acesse `/admin/courses` e clique em **Adicionar**
+ou vá diretamente para `/admin/courses/add`. Preencha os campos do formulário e
+salve. Para editar um curso existente utilize `/admin/courses/edit/<id>` a
+partir da lista. A exclusão pode ser feita enviando um POST para
 `/admin/courses/delete/<id>`.
 
 ### Pagamentos
