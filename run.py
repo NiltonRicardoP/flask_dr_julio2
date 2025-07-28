@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from app import app
+from app import app, create_initial_data
 import os
 
 if __name__ == '__main__':
@@ -11,5 +11,8 @@ if __name__ == '__main__':
     if not os.path.exists(courses_dir):
         os.makedirs(courses_dir)
         
+    # Initialize default data (admin user and settings)
+    create_initial_data()
+
     # Run the application
     app.run(debug=True, host='0.0.0.0', port=5000)
