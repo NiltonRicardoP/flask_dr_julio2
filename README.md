@@ -23,13 +23,16 @@ python run.py
 ```
 
 Isso criará a pasta `static/uploads` caso não exista e rodará o servidor em `http://localhost:5000`.
+Na primeira execução o script também cria automaticamente um usuário administrador e configurações iniciais.
 
 Para produção é possível utilizar o `Procfile` com Gunicorn. O arquivo `runtime.txt` define a versão do Python.
 
 ### Migrações
 
 
-As migrações do banco ficam na pasta `migrations/`. Com o ambiente virtual ativo e a variável `FLASK_APP` apontando para `app.py`, gere uma nova migração sempre que modificar os modelos e aplique-a:
+As migrações do banco ficam na pasta `migrations/`.
+Depois de clonar o projeto execute `flask db upgrade` para criar todas as tabelas.
+Com o ambiente virtual ativo e `FLASK_APP` apontando para `app.py`, gere uma nova migração sempre que modificar os modelos e aplique-a:
 
 ```bash
 export FLASK_APP=app.py
