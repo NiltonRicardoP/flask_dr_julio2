@@ -9,34 +9,57 @@
             <div class="mb-3">
                 {{ form.title.label(class="form-label") }}
                 {{ form.title(class="form-control") }}
-                {% for error in form.title.errors %}
-                    <div class="text-danger"><small>{{ error }}</small></div>
-                {% endfor %}
+                {% if form.title.errors %}
+                    <div class="text-danger">
+                        {% for error in form.title.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             <div class="mb-3">
                 {{ form.description.label(class="form-label") }}
                 {{ form.description(class="form-control", rows=6) }}
-                {% for error in form.description.errors %}
-                    <div class="text-danger"><small>{{ error }}</small></div>
-                {% endfor %}
+                {% if form.description.errors %}
+                    <div class="text-danger">
+                        {% for error in form.description.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             <div class="mb-3">
                 {{ form.price.label(class="form-label") }}
                 {{ form.price(class="form-control") }}
-                {% for error in form.price.errors %}
-                    <div class="text-danger"><small>{{ error }}</small></div>
-                {% endfor %}
+                {% if form.price.errors %}
+                    <div class="text-danger">
+                        {% for error in form.price.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             <div class="mb-3">
                 {{ form.access_url.label(class="form-label") }}
                 {{ form.access_url(class="form-control") }}
-                {% for error in form.access_url.errors %}
-                    <div class="text-danger"><small>{{ error }}</small></div>
-                {% endfor %}
+                {% if form.access_url.errors %}
+                    <div class="text-danger">
+                        {% for error in form.access_url.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             <div class="mb-3">
                 {{ form.image.label(class="form-label") }}
                 {{ form.image(class="form-control") }}
+                {% if form.image.errors %}
+                    <div class="text-danger">
+                        {% for error in form.image.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 {% if course and course.image %}
                     <div class="mt-2">
                         <img src="{{ url_for('static', filename='uploads/courses/' + course.image) }}" class="img-thumbnail" style="max-height:200px;" alt="{{ course.title }}">
