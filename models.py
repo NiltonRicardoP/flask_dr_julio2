@@ -101,7 +101,7 @@ class GalleryItem(db.Model):
     media_type = db.Column(db.String(10), nullable=False)  # "image" ou "video"
     filename = db.Column(db.String(255), nullable=False)
     caption = db.Column(db.String(255), nullable=True)
-    categoria = db.Column(db.String(50), nullable=False, default='eventos')  # ✅ campo de categoria adicionado corretamente
+    categoria = db.Column(db.String(50), nullable=False, default='eventos')  # campo de categoria adicionado corretamente
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
