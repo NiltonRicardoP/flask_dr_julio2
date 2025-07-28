@@ -161,7 +161,7 @@ def edit_event(id):
                 # Delete old image
                 try:
                     os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], event.image))
-                except:
+                except FileNotFoundError:
                     pass
                     
             filename = secure_filename(form.image.data.filename)
@@ -231,7 +231,7 @@ def edit_course(id):
             if course.image:
                 try:
                     os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], course.image))
-                except:
+                except FileNotFoundError:
                     pass
             filename = secure_filename(form.image.data.filename)
             form.image.data.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
