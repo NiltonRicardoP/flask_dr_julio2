@@ -9,7 +9,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-4 mb-4">
-                {% if settings.about_image %}
+                {% if settings and settings.about_image %}
                     <img src="{{ url_for('static', filename='uploads/' + settings.about_image) }}" alt="Dr. Julio Vasconcelos" class="img-fluid rounded-3 shadow">
                 {% else %}
                     <img src="{{ url_for('static', filename='img/profile.jpg') }}" alt="Dr. Julio Vasconcelos" class="img-fluid rounded-3 shadow">
@@ -17,12 +17,12 @@
             </div>
             <div class="col-md-8 mb-4">
                 <h1 class="mb-3">Dr. Julio Vasconcelos</h1>
-                <p class="lead text-content">{{ settings.about_text }}</p>
+                <p class="lead text-content">{% if settings and settings.about_text %}{{ settings.about_text }}{% endif %}</p>
 
                 <div class="academic-section mt-4">
                     <h3><i class="fas fa-graduation-cap me-2"></i>Formação Acadêmica</h3>
                     <div class="text-content">
-                        {% if settings.academic_background %}
+                        {% if settings and settings.academic_background %}
                             {{ settings.academic_background|safe }}
                         {% else %}
                             <ul>
@@ -37,7 +37,7 @@
                 <div class="professional-section mt-4">
                     <h3><i class="fas fa-briefcase me-2"></i>Experiência Profissional</h3>
                     <div class="text-content">
-                        {% if settings.professional_experience %}
+                        {% if settings and settings.professional_experience %}
                             {{ settings.professional_experience|safe }}
                         {% else %}
                             <ul>

@@ -1,4 +1,3 @@
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -85,6 +84,18 @@ class Appointment(db.Model):
     def __repr__(self):
         return f'<Appointment {self.name} - {self.date} {self.time}>'
 
+
+class ContactMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    subject = db.Column(db.String(150), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<ContactMessage {self.name}>'
+
 class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     site_title = db.Column(db.String(100), default='Dr. Julio Vasconcelos')
@@ -113,7 +124,7 @@ class GalleryItem(db.Model):
     media_type = db.Column(db.String(10), nullable=False)  # "image" ou "video"
     filename = db.Column(db.String(255), nullable=False)
     caption = db.Column(db.String(255), nullable=True)
-    categoria = db.Column(db.String(50), nullable=False, default='eventos')  # ✅ campo de categoria adicionado corretamente
+    categoria = db.Column(db.String(50), nullable=False, default='eventos')  # campo de categoria adicionado corretamente
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -139,6 +150,112 @@ class Invoice(db.Model):
 
     def __repr__(self):
         return f'<Invoice {self.number}>'
+
+
+class Course(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text)
+    image = db.Column(db.String(255))
+    price = db.Column(db.Float, default=0.0)
+    access_url = db.Column(db.String(255))
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Course {self.title}>'
+
+    @classmethod
+    def get_upcoming_courses(cls):
+        """Return active courses starting today or later if start_date exists."""
+        query = cls.query.filter(cls.is_active == True)
+        if hasattr(cls, "start_date"):
+            query = query.filter(cls.start_date >= datetime.utcnow())
+            order_field = cls.start_date
+        else:
+            order_field = cls.created_at
+        return query.order_by(order_field).all()
+
+    @classmethod
+    def get_past_courses(cls):
+        """Return active courses that have ended when date fields exist."""
+        if not hasattr(cls, "end_date"):
+            return []
+        query = cls.query.filter(
+            cls.end_date < datetime.utcnow(), cls.is_active == True
+        )
+        order_field = getattr(cls, "start_date", cls.created_at).desc()
+        return query.order_by(order_field).all()
+
+
+class CourseEnrollment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20))
+    payment_status = db.Column(db.String(20), default='pending')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    course = db.relationship('Course', backref=db.backref('enrollments', lazy=True))
+
+
+class PaymentTransaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    enrollment_id = db.Column(db.Integer, db.ForeignKey('course_enrollment.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    provider_id = db.Column(db.String(100))
+    status = db.Column(db.String(20), default='paid')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    enrollment = db.relationship('CourseEnrollment', backref=db.backref('transactions', lazy=True))
+
+    def __repr__(self):
+        return f'<PaymentTransaction {self.id}>'
+
+
+class CoursePurchase(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    stripe_session_id = db.Column(db.String(255))
+    status = db.Column(db.String(20), default='pending')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    course = db.relationship('Course', backref=db.backref('purchases', lazy=True))
+
+    def __repr__(self):
+        return f'<CoursePurchase {self.id}>'
+
+
+class CourseRegistration(db.Model):
+    """Registro público de interesse em cursos."""
+    id = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    participant_name = db.Column(db.String(100), nullable=False)
+    participant_email = db.Column(db.String(100), nullable=False)
+    payment_status = db.Column(db.String(20), default='pending')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    course = db.relationship('Course', backref=db.backref('registrations', lazy=True))
+
+    def __repr__(self):
+        return f'<CourseRegistration {self.id}>'
+
+
+class Payment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    registration_id = db.Column(db.Integer, db.ForeignKey('course_registration.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    provider = db.Column(db.String(50))
+    status = db.Column(db.String(20), default='pending')
+    transaction_id = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    registration = db.relationship('CourseRegistration', backref=db.backref('payments', lazy=True))
+
+    def __repr__(self):
+        return f'<Payment {self.id}>'
 
 
 class Convenio(db.Model):

@@ -6,8 +6,7 @@ import os
 
 from config import Config
 from extensions import db  # Correto: db importado do extensions.py
-from models import User, Event, Course, CourseRegistration, Appointment, Settings
-from forms import LoginForm, AppointmentForm, ContactForm, EventForm, SettingsForm
+
 from routes import main_bp
 from admin_routes import admin_bp
 
@@ -56,6 +55,8 @@ def create_initial_data():
 if __name__ == '__main__':
     uploads_path = os.path.join(app.root_path, 'static', 'uploads')
     os.makedirs(uploads_path, exist_ok=True)
+    courses_path = os.path.join(uploads_path, 'courses')
+    os.makedirs(courses_path, exist_ok=True)
 
     create_initial_data()  # ✅ Só executa quando rodar diretamente (não em flask db ...)
     app.run(debug=True)

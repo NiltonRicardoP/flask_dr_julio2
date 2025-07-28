@@ -176,9 +176,21 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                           <a class="nav-link {% if request.endpoint == 'main_bp.contact' %}active{% endif %}" href="{{ url_for('main_bp.contact') }}">
+                           <a class="nav-link {% if request.endpoint == 'admin_bp.messages' %}active{% endif %}" href="{{ url_for('admin_bp.messages') }}">
                                 <i class="fas fa-envelope"></i>
                                 Mensagens
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.courses' %}active{% endif %}" href="{{ url_for('admin_bp.courses') }}">
+                                <i class="fas fa-book"></i>
+                                Cursos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.enrollments' %}active{% endif %}" href="{{ url_for('admin_bp.enrollments') }}">
+                                <i class="fas fa-users"></i>
+                                Inscrições
                             </a>
                         </li>
                     </ul>
