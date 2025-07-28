@@ -66,6 +66,8 @@ class CourseRegistration(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
+    payment_status = db.Column(db.String(20), default='pending')
+    transaction_id = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     course = db.relationship('Course', backref=db.backref('registrations', lazy=True))
@@ -235,6 +237,7 @@ class CourseRegistration(db.Model):
     participant_name = db.Column(db.String(100), nullable=False)
     participant_email = db.Column(db.String(100), nullable=False)
     payment_status = db.Column(db.String(20), default='pending')
+    transaction_id = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     course = db.relationship('Course', backref=db.backref('registrations', lazy=True))

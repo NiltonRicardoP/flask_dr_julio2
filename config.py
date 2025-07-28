@@ -27,3 +27,7 @@ class Config:
     # Stripe configuration
     STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
     STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
+
+    # Pagar.me configuration
+    PAGARME_API_KEY = os.environ.get('PAGARME_API_KEY', '')
+    PAGARME_BASE_URL = os.environ.get('PAGARME_BASE_URL', 'https://api.pagar.me/1')

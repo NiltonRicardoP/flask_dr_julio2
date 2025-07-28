@@ -66,6 +66,9 @@ class CourseRegistrationForm(FlaskForm):
     name = StringField('Nome Completo', validators=[DataRequired(), Length(min=3, max=100)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     phone = StringField('Telefone', validators=[Optional(), Length(min=8, max=20)])
+    card_number = StringField('Número do Cartão', validators=[DataRequired()])
+    card_expiration = StringField('Validade (MMYY)', validators=[DataRequired()])
+    card_cvv = StringField('CVV', validators=[DataRequired()])
     submit = SubmitField('Inscrever-se')
 
 
@@ -158,5 +161,8 @@ class RegistrationForm(FlaskForm):
 class CourseRegistrationForm(FlaskForm):
     participant_name = StringField('Nome', validators=[DataRequired(), Length(min=3, max=100)])
     participant_email = StringField('Email', validators=[DataRequired(), Email()])
+    card_number = StringField('Número do Cartão', validators=[DataRequired()])
+    card_expiration = StringField('Validade (MMYY)', validators=[DataRequired()])
+    card_cvv = StringField('CVV', validators=[DataRequired()])
     submit = SubmitField('Inscrever-se')
 
