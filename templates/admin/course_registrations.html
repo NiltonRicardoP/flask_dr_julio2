@@ -17,6 +17,7 @@
                             <th>Nome</th>
                             <th>Email</th>
                             <th>Telefone</th>
+                            <th>Status</th>
                             <th>Data</th>
                         </tr>
                     </thead>
@@ -27,6 +28,7 @@
                             <td>{{ r.name }}</td>
                             <td>{{ r.email }}</td>
                             <td>{{ r.phone or '-' }}</td>
+                            <td>{{ r.payment_status or '-' }}</td>
                             <td>{{ r.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
                         </tr>
                         {% endfor %}

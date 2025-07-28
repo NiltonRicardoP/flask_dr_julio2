@@ -1,5 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
 from datetime import datetime
+from models import db, Course, CourseRegistration
+from forms import CourseRegistrationForm, ContactForm, AppointmentForm
+from models import Event, ContactMessage, Appointment, Settings
 
 
 # Create a Blueprint for the main routes
@@ -98,5 +101,41 @@ def gallery():
     items = GalleryItem.query.order_by(GalleryItem.created_at.desc()).all()
     settings = Settings.query.first()
     return render_template('gallery.html', items=items, settings=settings)
+
+
+@main_bp.route('/courses/<int:id>/register', methods=['GET', 'POST'])
+def register_course(id):
+    course = Course.query.get_or_404(id)
+    form = CourseRegistrationForm()
+    if form.validate_on_submit():
+        registration = CourseRegistration(
+            course_id=id,
+            participant_name=form.participant_name.data,
+            participant_email=form.participant_email.data,
+        )
+        db.session.add(registration)
+        db.session.commit()
+
+        try:
+            from pagarme_service import create_transaction
+
+            result = create_transaction(
+                course.price,
+                card_number=form.card_number.data,
+                card_expiration_date=form.card_expiration.data,
+                card_cvv=form.card_cvv.data,
+                card_holder_name=form.participant_name.data,
+            )
+            registration.transaction_id = str(result.get('id'))
+            registration.payment_status = result.get('status', 'pending')
+        except Exception:
+            registration.payment_status = 'failed'
+        finally:
+            db.session.commit()
+
+        flash('Inscrição realizada com sucesso!', 'success')
+        return redirect(url_for('main_bp.course_page', id=id))
+
+    return render_template('course_register.html', form=form, course=course)
 
 

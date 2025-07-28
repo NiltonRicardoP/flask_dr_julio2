@@ -51,7 +51,9 @@ Flask e pelo envio de emails. As principais variáveis são:
 - `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS`, `MAIL_USERNAME`, `MAIL_PASSWORD`,
   `MAIL_DEFAULT_SENDER` – dados para o servidor de email.
 
-Não existem variáveis específicas para cursos ou pagamentos até o momento.
+Além das chaves do Stripe é necessário definir `PAGARME_API_KEY` para habilitar
+o processamento de pagamentos via Pagar.me. Opcionalmente é possível alterar o
+endereço da API com `PAGARME_BASE_URL`.
 
 ## Cursos
 
