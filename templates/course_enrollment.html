@@ -16,8 +16,7 @@
         <div class="col-md-4">
             <div class="card bg-dark-blue shadow border-0">
                 <div class="card-body">
-                    <h5 class="card-title mb-3">Informações</h5>
-                    <p class="text-light mb-1">Data: {{ course.created_at.strftime('%d/%m/%Y') }}</p>
+                    <h5 class="card-title mb-3">Inscreva-se</h5>
                     <p class="text-light">Valor: R$ {{ '%.2f'|format(course.price) }}</p>
                     <form method="POST">
                         {{ form.csrf_token }}
@@ -35,9 +34,17 @@
                                 <div class="invalid-feedback d-block">{{ error }}</div>
                             {% endfor %}
                         </div>
+                        <div class="mb-3">
+                            {{ form.phone.label(class="form-label text-light") }}
+                            {{ form.phone(class="form-control bg-darker text-white") }}
+                            {% for error in form.phone.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
                         <div class="d-grid">
                             {{ form.submit(class="btn btn-primary") }}
                         </div>
+                        <p class="text-light mt-2"><small>Você será redirecionado para o pagamento.</small></p>
                     </form>
                 </div>
             </div>

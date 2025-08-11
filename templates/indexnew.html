@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Início{% endblock %}
+
+{% block body_class %}custom-theme{% endblock %}
+
+{% block content %}
+<section class="hero-section text-light py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="display-4">DR. JÚLIO<br>VASCONCELOS</h1>
+                <p class="lead">Cuidando da mente com ciência, empatia e experiência</p>
+                <a href="{{ url_for('main_bp.appointment') }}" class="btn btn-consulta">Agendar Consulta</a>
+                <a href="{{ url_for('main_bp.about') }}" class="btn btn-outline-light">Saiba Mais</a>
+            </div>
+            <div class="col-md-6 text-center">
+                {% if settings and settings.about_image %}
+                    <img src="{{ url_for('static', filename='uploads/' + settings.about_image) }}" class="profile-image">
+                {% else %}
+                    <img src="{{ url_for('static', filename='img/profile.jpg') }}" class="profile-image">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="sobre-section py-5">
+    <div class="container text-center">
+        <h2>Sobre</h2>
+        <div class="row">
+            <div class="col-md-3 sobre-card">
+                <i class="fas fa-graduation-cap icon"></i>
+                <h5>Formação</h5>
+                <p>Psicólogo | Especialista em Neuropsicologia (Santa Casa RJ)</p>
+            </div>
+            <div class="col-md-3 sobre-card">
+                <i class="fas fa-brain icon"></i>
+                <h5>Especialidades</h5>
+                <p>Autismo, TDAH, Transtornos Cognitivos</p>
+            </div>
+            <div class="col-md-3 sobre-card">
+                <i class="fas fa-users icon"></i>
+                <h5>Público</h5>
+                <p>Crianças, Adolescentes e Adultos</p>
+            </div>
+            <div class="col-md-3 sobre-card">
+                <i class="fas fa-briefcase icon"></i>
+                <h5>Atuação</h5>
+                <p>Clínico, pesquisador e professor universitário</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="servicos-section py-5">
+    <div class="container text-center">
+        <h2>Serviços</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card servico">
+                    <i class="fas fa-clipboard-check servico-icon"></i>
+                    <h5>Avaliação Neuropsicológica</h5>
+                    <p>Funções cognitivas, emocionais e comportamentais</p>
+                    <a href="#" class="btn btn-primary">Saiba Mais</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card servico">
+                    <i class="fas fa-comments servico-icon"></i>
+                    <h5>Psicoterapia</h5>
+                    <p>Atendimento integrativo com plano personalizado</p>
+                    <a href="#" class="btn btn-primary">Saiba Mais</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card servico">
+                    <i class="fas fa-chalkboard-teacher servico-icon"></i>
+                    <h5>Palestras e Workshops</h5>
+                    <p>Capacitações em neurociência e saúde mental</p>
+                    <a href="#" class="btn btn-primary">Saiba Mais</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
