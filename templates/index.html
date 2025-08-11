@@ -7,30 +7,19 @@
 {% block content %}
 <section class="hero-dark">
     <div class="container">
-        <div class="row justify-content-center text-center">
-            <div class="col-md-8">
-                <div class="profile-container">
-                    {% if settings and settings.about_image %}
-                        <img src="{{ url_for('static', filename='uploads/' + settings.about_image) }}" alt="Dr. Julio Vasconcelos" class="profile-image">
-                    {% else %}
-                        <img src="{{ url_for('static', filename='img/profile.jpg') }}" alt="Dr. Julio Vasconcelos" class="profile-image">
-                    {% endif %}
-                </div>
-
-                <h1 class="display-4 mt-4">JULIO VASCONCELOS</h1>
-                <p class="text-primary">CRP: 05/31194</p>
-
-                <div class="specialties mt-4">
-                    <div class="specialty-divider"></div>
-                    <h2 class="specialty-title">Neuropsicólogo</h2>
-                    <h2 class="specialty-title">Psicólogo clínico</h2>
-                    <h2 class="specialty-title">Doutor em Saúde mental</h2>
-                </div>
-
-                <div class="mt-5">
-                    <a href="{{ url_for('main_bp.appointment') }}" class="btn btn-primary btn-lg me-3">Agendar Consulta</a>
-                    <a href="{{ url_for('main_bp.about') }}" class="btn btn-outline-light btn-lg">Saiba Mais</a>
-                </div>
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="display-4">DR. JÚLIO<br>VASCONCELOS</h1>
+                <p class="lead">Cuidando da mente com ciência, empatia e experiência</p>
+                <a href="{{ url_for('main_bp.appointment') }}" class="btn btn-outline-light">Agendar Consulta</a>
+                <a href="{{ url_for('main_bp.about') }}" class="btn btn-outline-light">Saiba Mais</a>
+            </div>
+            <div class="col-md-6 text-center">
+                {% if settings and settings.about_image %}
+                    <img src="{{ url_for('static', filename='uploads/' + settings.about_image) }}" class="profile-image">
+                {% else %}
+                    <img src="{{ url_for('static', filename='img/profile.jpg') }}" class="profile-image">
+                {% endif %}
             </div>
         </div>
     </div>

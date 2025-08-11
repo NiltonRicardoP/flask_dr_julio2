@@ -13,7 +13,7 @@ body.dark-theme {
 /* Hero Section */
 .hero-dark {
   padding: 80px 0;
-  min-height: 100vh;
+  min-height: 50vh;
   display: flex;
   align-items: center;
 }
@@ -144,6 +144,15 @@ body.dark-theme {
   left: 50%;
   transform: translateX(-50%);
 }
+/* Section Titles message */
+.section-title-message {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 10px;
+  margin-bottom: 3rem;
+  color: #ffffff;
+}
+
 
 /* Info Cards */
 .info-card {
@@ -282,6 +291,7 @@ body.dark-theme {
 
 .event-card .card-title {
   color: #ffffff;
+  font-size: 1.2rem;
   font-size: 1.2rem;
   margin-bottom: 15px;
 }
