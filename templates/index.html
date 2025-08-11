@@ -8,18 +8,31 @@
 <section class="hero-dark">
     <div class="container">
         <div class="row align-items-center">
+            <!-- Coluna de texto -->
             <div class="col-md-6">
                 <h1 class="display-4">DR. JULIO<br>VASCONCELOS</h1>
                 <p class="lead">Cuidando da mente com ciência, empatia e experiência</p>
-                <a href="{{ url_for('main_bp.appointment') }}" class="btn btn-outline-light">Agendar Consulta</a>
-                <a href="{{ url_for('main_bp.about') }}" class="btn btn-outline-light">Saiba Mais</a>
+
+                <!-- Botões para DESKTOP/TABLET (some no mobile) -->
+                <div class="d-none d-md-flex gap-2 mt-3">
+                    <a href="{{ url_for('main_bp.appointment') }}" class="btn btn-outline-light">Agendar Consulta</a>
+                    <a href="{{ url_for('main_bp.about') }}" class="btn btn-outline-light">Saiba Mais</a>
+                </div>
             </div>
+
+            <!-- Coluna da imagem -->
             <div class="col-md-6 text-center">
                 {% if settings and settings.about_image %}
                     <img src="{{ url_for('static', filename='uploads/' + settings.about_image) }}" class="profile-image">
                 {% else %}
                     <img src="{{ url_for('static', filename='img/profile.jpg') }}" class="profile-image">
                 {% endif %}
+
+                <!-- Botões para MOBILE (aparecem embaixo da imagem) -->
+                <div class="d-flex d-md-none justify-content-center gap-2 mt-3">
+                    <a href="{{ url_for('main_bp.appointment') }}" class="btn btn-outline-light">Agendar Consulta</a>
+                    <a href="{{ url_for('main_bp.about') }}" class="btn btn-outline-light">Saiba Mais</a>
+                </div>
             </div>
         </div>
     </div>
