@@ -188,6 +188,9 @@ def register_course(id):
         else:
             enrollment.payment_status = 'paid'
 
+        if not enrollment.access_start:
+            enrollment.activate_access()
+
         transaction = PaymentTransaction(
             enrollment_id=enrollment.id,
             amount=course.price,
@@ -252,6 +255,8 @@ def pay_course(enrollment_id):
     if form.validate_on_submit():
         try:
             enrollment.payment_status = 'paid'
+            if not enrollment.access_start:
+                enrollment.activate_access()
             transaction = PaymentTransaction(
                 enrollment_id=enrollment.id,
                 amount=enrollment.course.price,
@@ -339,6 +344,8 @@ def payment_success():
     if session and session.payment_status == 'paid' and transaction:
         transaction.status = 'paid'
         transaction.enrollment.payment_status = 'paid'
+        if transaction.enrollment and not transaction.enrollment.access_start:
+            transaction.enrollment.activate_access()
         db.session.commit()
         flash('Pagamento confirmado com sucesso.', 'success')
     else:
@@ -381,6 +388,8 @@ def stripe_webhook():
             txn.status = 'paid'
             if txn.enrollment:
                 txn.enrollment.payment_status = 'paid'
+                if not txn.enrollment.access_start:
+                    txn.enrollment.activate_access()
             db.session.commit()
     return '', 200
 
@@ -423,6 +432,9 @@ def registration_success(registration_id):
         else:
             enrollment.payment_status = 'paid'
 
+        if not enrollment.access_start:
+            enrollment.activate_access()
+
         provider_id = registration.payments[0].transaction_id if registration.payments else 'manual'
         existing_txn = PaymentTransaction.query.filter_by(enrollment_id=enrollment.id, provider_id=provider_id).first()
         if not existing_txn:
@@ -448,6 +460,10 @@ def course_access(enrollment_id):
     if enrollment.payment_status != 'paid':
         flash('Pagamento não identificado para esta inscrição.', 'warning')
         return redirect(url_for('main_bp.course_page', id=enrollment.course_id))
+    now = datetime.utcnow()
+    if not (enrollment.access_start and enrollment.access_end and enrollment.access_start <= now <= enrollment.access_end):
+        flash('Seu acesso a este curso expirou ou ainda não foi liberado.', 'warning')
+        return redirect(url_for('student_bp.dashboard'))
     return render_template('course_access.html', enrollment=enrollment)
 
 
@@ -515,6 +531,8 @@ def hotmart_webhook():
         db.session.add(enrollment)
     else:
         enrollment.payment_status = status
+    if status == 'paid' and not enrollment.access_start:
+        enrollment.activate_access()
 
     db.session.flush()
 

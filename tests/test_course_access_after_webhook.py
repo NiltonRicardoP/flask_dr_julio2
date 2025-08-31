@@ -47,6 +47,7 @@ def test_webhook_payment_allows_course_access(client):
     with client.application.app_context():
         enrollment = CourseEnrollment.query.filter_by(course_id=course_id, user_id=user_id).first()
         assert enrollment is not None
+        assert enrollment.access_end is not None
         enrollment_id = enrollment.id
 
     resp_no_login = client.get(f'/curso/acesso/{enrollment_id}')
