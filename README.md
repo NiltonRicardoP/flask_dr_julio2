@@ -53,6 +53,7 @@ Flask e pelo envio de emails. As principais variáveis são:
 
 - `HOTMART_WEBHOOK_SECRET` – segredo para validar notificações do Hotmart.
 - `HOTMART_CLIENT_ID` e `HOTMART_CLIENT_SECRET` – credenciais OAuth da API do Hotmart.
+- `HOTMART_USE_SANDBOX` – define se a API do Hotmart deve utilizar o ambiente de testes.
 
 As credenciais do Hotmart podem ser geradas no [Painel de Desenvolvedor do Hotmart](https://developers.hotmart.com/).
 Crie uma nova aplicação para obter o Client ID e o Client Secret e então defina-os no arquivo `.env`.
