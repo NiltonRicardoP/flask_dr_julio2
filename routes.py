@@ -388,15 +388,29 @@ def hotmart_webhook():
         return 'Unauthorized', 403
 
     payload = request.get_json(silent=True) or {}
-    status = payload.get('status')
+    raw_status = payload.get('status')
     product_id = payload.get('id') or payload.get('product', {}).get('id')
     email = payload.get('email') or payload.get('buyer', {}).get('email')
     name = payload.get('name') or payload.get('buyer', {}).get('name') or (email.split('@')[0] if email else '')
     amount = float(payload.get('amount') or payload.get('price') or 0)
     txn_id = payload.get('transaction_id') or payload.get('purchase', {}).get('id')
 
-    if not status or not product_id or not email:
+    if not raw_status or not product_id or not email:
         return 'Invalid payload', 400
+
+    status_map = {
+        'approved': 'paid',
+        'completed': 'paid',
+        'refunded': 'refunded',
+        'chargeback': 'refunded',
+        'canceled': 'canceled',
+        'cancelled': 'canceled',
+        'expired': 'canceled',
+        'waiting_payment': 'pending',
+        'pending': 'pending',
+        'pending_analysis': 'pending',
+    }
+    status = status_map.get(raw_status, raw_status)
 
     course = Course.query.filter_by(id=product_id).first()
     if not course:
