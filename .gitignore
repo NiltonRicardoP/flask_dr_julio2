@@ -41,3 +41,6 @@ static/uploads/gallery/
 # Arquivos de sistema
 .DS_Store
 Thumbs.db
+
+# Pacotes wheel
+*.whl
