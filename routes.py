@@ -1,5 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
 from datetime import datetime
+import hmac
+import hashlib
+import secrets
+from flask_mail import Message
 
 from forms import (
     ContactForm,
@@ -21,6 +25,7 @@ from models import (
     CourseRegistration,
     Payment,
     ContactMessage,
+    User,
 )
 
 try:
@@ -307,6 +312,72 @@ def course_access(enrollment_id):
         flash('Pagamento não identificado para esta inscrição.', 'warning')
         return redirect(url_for('main_bp.course_detail', id=enrollment.course_id))
     return render_template('course_access.html', enrollment=enrollment)
+
+
+@main_bp.route('/webhook/hotmart', methods=['POST'])
+def hotmart_webhook():
+    """Handle Hotmart purchase notifications."""
+    secret = current_app.config.get('HOTMART_WEBHOOK_SECRET', '')
+    signature = request.headers.get('X-HOTMART-HMAC-SHA256', '')
+    if not secret or not signature:
+        return 'Unauthorized', 403
+    expected = hmac.new(secret.encode(), request.data, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, signature):
+        return 'Unauthorized', 403
+
+    payload = request.get_json(silent=True) or {}
+    status = payload.get('status')
+    product_id = payload.get('id') or payload.get('product', {}).get('id')
+    email = payload.get('email') or payload.get('buyer', {}).get('email')
+    name = payload.get('name') or payload.get('buyer', {}).get('name') or (email.split('@')[0] if email else '')
+    amount = float(payload.get('amount') or payload.get('price') or 0)
+    txn_id = payload.get('transaction_id') or payload.get('purchase', {}).get('id')
+
+    if not status or not product_id or not email:
+        return 'Invalid payload', 400
+
+    course = Course.query.filter_by(id=product_id).first()
+    if not course:
+        return 'Course not found', 404
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        username = email.split('@')[0]
+        user = User(username=username, email=email, role='student')
+        user.set_password(secrets.token_urlsafe(8))
+        db.session.add(user)
+
+    enrollment = CourseEnrollment.query.filter_by(course_id=course.id, email=email).first()
+    if not enrollment:
+        enrollment = CourseEnrollment(course_id=course.id, name=name, email=email, payment_status=status)
+        db.session.add(enrollment)
+    else:
+        enrollment.payment_status = status
+
+    db.session.flush()
+
+    transaction = PaymentTransaction(
+        enrollment_id=enrollment.id,
+        amount=amount or course.price,
+        provider_id=txn_id,
+        status=status,
+    )
+    db.session.add(transaction)
+    db.session.commit()
+
+    mail = current_app.extensions.get('mail')
+    if mail:
+        try:
+            msg = Message(
+                subject='Acesso ao curso',
+                recipients=[email],
+                body=f'Você agora tem acesso ao curso {course.title}. Link: {course.access_url or ""}'
+            )
+            mail.send(msg)
+        except Exception:
+            pass
+
+    return '', 200
 
 
 # Public catalog of courses
