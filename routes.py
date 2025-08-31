@@ -205,8 +205,17 @@ def course_detail(id):
     settings = Settings.query.first()
     form = CourseEnrollmentForm()
     if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if not user:
+            username = form.email.data.split('@')[0]
+            user = User(username=username, email=form.email.data, role='student')
+            user.set_password(secrets.token_urlsafe(8))
+            db.session.add(user)
+            db.session.flush()
+
         enrollment = CourseEnrollment(
             course_id=course.id,
+            user_id=user.id,
             name=form.name.data,
             email=form.email.data,
             phone=form.phone.data,
@@ -346,10 +355,17 @@ def hotmart_webhook():
         user = User(username=username, email=email, role='student')
         user.set_password(secrets.token_urlsafe(8))
         db.session.add(user)
+        db.session.flush()
 
-    enrollment = CourseEnrollment.query.filter_by(course_id=course.id, email=email).first()
+    enrollment = CourseEnrollment.query.filter_by(course_id=course.id, user_id=user.id).first()
     if not enrollment:
-        enrollment = CourseEnrollment(course_id=course.id, name=name, email=email, payment_status=status)
+        enrollment = CourseEnrollment(
+            course_id=course.id,
+            user_id=user.id,
+            name=name,
+            email=email,
+            payment_status=status,
+        )
         db.session.add(enrollment)
     else:
         enrollment.payment_status = status

@@ -169,6 +169,7 @@ class Course(db.Model):
 class CourseEnrollment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
@@ -176,6 +177,7 @@ class CourseEnrollment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     course = db.relationship('Course', backref=db.backref('enrollments', lazy=True))
+    user = db.relationship('User', backref=db.backref('course_enrollments', lazy=True))
 
 
 class PaymentTransaction(db.Model):
