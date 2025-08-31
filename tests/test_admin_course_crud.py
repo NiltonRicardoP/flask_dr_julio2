@@ -3,14 +3,20 @@ from models import db, User, Course
 
 
 def create_admin_user():
-    admin = User(username='admin', email='admin@example.com', role='admin')
-    admin.set_password('admin123')
-    db.session.add(admin)
-    db.session.commit()
+    """Return existing admin user or create a new one."""
+    admin = User.query.filter_by(email='admin@example.com').first()
+    if admin is None:
+        admin = User(username='admin', email='admin@example.com', role='admin')
+        admin.set_password('admin123')
+        db.session.add(admin)
+        db.session.commit()
     return admin
 
 
 def login(client, username='admin', password='admin123'):
+    # Ensure the admin user exists before attempting login
+    with client.application.app_context():
+        create_admin_user()
     return client.post(
         '/admin/login',
         data={'username': username, 'password': password},
