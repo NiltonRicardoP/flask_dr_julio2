@@ -356,12 +356,16 @@ def hotmart_webhook():
         return 'Course not found', 404
 
     user = User.query.filter_by(email=email).first()
+    new_user = False
+    temp_password = None
     if not user:
         username = email.split('@')[0]
         user = User(username=username, email=email, role='student')
-        user.set_password(secrets.token_urlsafe(8))
+        temp_password = secrets.token_urlsafe(8)
+        user.set_password(temp_password)
         db.session.add(user)
         db.session.flush()
+        new_user = True
 
     enrollment = CourseEnrollment.query.filter_by(course_id=course.id, user_id=user.id).first()
     if not enrollment:
@@ -390,10 +394,19 @@ def hotmart_webhook():
     mail = current_app.extensions.get('mail')
     if mail:
         try:
+            login_link = url_for('student_bp.login', _external=True)
+            body = f'Você agora tem acesso ao curso {course.title}. Link: {course.access_url or ""}'
+            if new_user and temp_password:
+                body += (
+                    f"\n\nFaça login em {login_link} com o usuário {user.username} e a senha temporária {temp_password}. "
+                    "Altere sua senha após o primeiro acesso."
+                )
+            else:
+                body += f"\n\nAcesse {login_link} para entrar no curso."
             msg = Message(
                 subject='Acesso ao curso',
                 recipients=[email],
-                body=f'Você agora tem acesso ao curso {course.title}. Link: {course.access_url or ""}'
+                body=body
             )
             mail.send(msg)
         except Exception:
