@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
+from flask_login import login_required, current_user
 from datetime import datetime
 import hmac
 import hashlib
@@ -315,8 +316,12 @@ def registration_success(registration_id):
 
 
 @main_bp.route('/curso/acesso/<int:enrollment_id>')
+@login_required
 def course_access(enrollment_id):
     enrollment = CourseEnrollment.query.get_or_404(enrollment_id)
+    if enrollment.user_id != current_user.id:
+        flash('Você não tem permissão para acessar este curso.', 'danger')
+        return redirect(url_for('student_bp.dashboard'))
     if enrollment.payment_status != 'paid':
         flash('Pagamento não identificado para esta inscrição.', 'warning')
         return redirect(url_for('main_bp.course_detail', id=enrollment.course_id))
