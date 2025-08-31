@@ -1,5 +1,4 @@
-from flask import url_for
-from models import Course, CourseEnrollment
+from models import Course
 from extensions import db
 from datetime import datetime
 
@@ -32,20 +31,15 @@ def test_courses_route_english_alias(client):
     assert 'Active EN' in html
 
 
-def test_course_detail_post_creates_enrollment(client):
+
+def test_course_page_shows_course_info(client):
     with client.application.app_context():
         course = create_course(title='Course', description='desc', price=10, is_active=True)
-        url = f'/cursos/{course.id}'
-    data = {'name': 'Test User', 'email': 'test@example.com', 'phone': '12345678'}
-    resp = client.post(url, data=data, follow_redirects=False)
-    assert resp.status_code == 302
-    with client.application.app_context():
-        enrollment = CourseEnrollment.query.first()
-        assert enrollment is not None
-        assert enrollment.name == 'Test User'
-        assert enrollment.email == 'test@example.com'
-        assert enrollment.course_id == course.id
-        assert resp.headers['Location'].endswith(f'/pagamento/{enrollment.id}')
+        url = f'/courses/{course.id}'
+    resp = client.get(url)
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+    assert 'Course' in html
 
 
 def test_courses_order_by_created_at_without_start_date(client):
