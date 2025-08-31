@@ -14,6 +14,7 @@ class Config:
     
     # Upload folder for images
     UPLOAD_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), 'static/uploads'))
+    COURSE_CONTENT_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), 'course_content'))
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max upload size
     
     # Email configuration

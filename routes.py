@@ -1,9 +1,11 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
+from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request, send_from_directory, abort
 from flask_login import login_required, current_user, login_user
 from datetime import datetime
 import hmac
 import hashlib
 import secrets
+import os
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from flask_mail import Message
 
 from forms import (
@@ -36,6 +38,34 @@ from payments import StripeGateway
 
 # Create a Blueprint for the main routes
 main_bp = Blueprint('main_bp', __name__)
+
+
+def generate_media_token(path):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    return serializer.dumps(path)
+
+
+@main_bp.route('/media/<path:filename>')
+@login_required
+def media(filename):
+    token = request.args.get('token', '')
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        data = serializer.loads(token, max_age=3600)
+        if data != filename:
+            abort(403)
+    except (BadSignature, SignatureExpired):
+        abort(403)
+    course_id = filename.split('/')[0]
+    if current_user.role != 'admin':
+        enrollment = CourseEnrollment.query.filter_by(course_id=course_id, user_id=current_user.id).first()
+        now = datetime.utcnow()
+        if not enrollment or not (
+            enrollment.access_start and enrollment.access_end and enrollment.access_start <= now <= enrollment.access_end
+        ):
+            abort(403)
+    base_dir = current_app.config['COURSE_CONTENT_FOLDER']
+    return send_from_directory(base_dir, filename)
 
 @main_bp.route('/')
 def index():
@@ -464,7 +494,16 @@ def course_access(enrollment_id):
     if not (enrollment.access_start and enrollment.access_end and enrollment.access_start <= now <= enrollment.access_end):
         flash('Seu acesso a este curso expirou ou ainda não foi liberado.', 'warning')
         return redirect(url_for('student_bp.dashboard'))
-    return render_template('course_access.html', enrollment=enrollment)
+    videos = []
+    content_folder = current_app.config['COURSE_CONTENT_FOLDER']
+    course_folder = os.path.join(content_folder, str(enrollment.course_id))
+    if os.path.isdir(course_folder):
+        for fname in os.listdir(course_folder):
+            if fname.lower().endswith(('.mp4', '.mov', '.avi', '.mkv', '.webm')):
+                path = f"{enrollment.course_id}/{fname}"
+                token = generate_media_token(path)
+                videos.append(url_for('main_bp.media', filename=path, token=token))
+    return render_template('course_access.html', enrollment=enrollment, videos=videos)
 
 
 @main_bp.route('/webhook/hotmart', methods=['POST'])

@@ -66,6 +66,17 @@
                     </div>
                 {% endif %}
             </div>
+            <div class="mb-3">
+                {{ form.video.label(class="form-label") }}
+                {{ form.video(class="form-control") }}
+                {% if form.video.errors %}
+                    <div class="text-danger">
+                        {% for error in form.video.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
             <div class="form-check form-switch mb-4">
                 {{ form.is_active(class="form-check-input") }}
                 {{ form.is_active.label(class="form-check-label") }}

@@ -59,6 +59,8 @@ if __name__ == '__main__':
     os.makedirs(uploads_path, exist_ok=True)
     courses_path = os.path.join(uploads_path, 'courses')
     os.makedirs(courses_path, exist_ok=True)
+    content_path = os.path.join(app.root_path, 'course_content')
+    os.makedirs(content_path, exist_ok=True)
 
     create_initial_data()  # ✅ Só executa quando rodar diretamente (não em flask db ...)
     app.run(debug=True)

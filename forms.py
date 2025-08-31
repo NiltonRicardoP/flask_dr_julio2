@@ -117,6 +117,7 @@ class CourseForm(FlaskForm):
     title = StringField('Título', validators=[DataRequired()])
     description = TextAreaField('Descrição', validators=[DataRequired()])
     image = FileField('Imagem', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Apenas imagens são permitidas!')])
+    video = FileField('Vídeo', validators=[FileAllowed(['mp4', 'mov', 'avi', 'mkv', 'webm'], 'Apenas vídeos são permitidos!'), Optional()])
     price = FloatField('Preço', validators=[DataRequired(), NumberRange(min=0)])
     access_url = StringField('URL de Acesso', validators=[Optional()])
     is_active = BooleanField('Curso Ativo', default=True)
