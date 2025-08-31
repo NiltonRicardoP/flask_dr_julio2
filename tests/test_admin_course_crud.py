@@ -3,7 +3,7 @@ from models import db, User, Course
 
 
 def create_admin_user():
-    admin = User(username='admin', email='admin@example.com')
+    admin = User(username='admin', email='admin@example.com', role='admin')
     admin.set_password('admin123')
     db.session.add(admin)
     db.session.commit()
@@ -72,3 +72,4 @@ def test_admin_delete_course(client):
     assert resp.status_code == 200
     with client.application.app_context():
         assert Course.query.get(cid) is None
+
