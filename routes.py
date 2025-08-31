@@ -157,14 +157,21 @@ def register_course(id):
     settings = Settings.query.first()
     form = CourseRegistrationForm()
 
+    if current_user.is_authenticated:
+        form.participant_name.data = current_user.username
+        form.participant_email.data = current_user.email
+
     def _finalize_enrollment(registration, transaction_id=None):
-        user = User.query.filter_by(email=registration.participant_email).first()
-        if not user:
-            username = registration.participant_email.split('@')[0]
-            user = User(username=username, email=registration.participant_email, role='student')
-            user.set_password(secrets.token_urlsafe(8))
-            db.session.add(user)
-            db.session.flush()
+        if current_user.is_authenticated:
+            user = current_user
+        else:
+            user = User.query.filter_by(email=registration.participant_email).first()
+            if not user:
+                username = registration.participant_email.split('@')[0]
+                user = User(username=username, email=registration.participant_email, role='student')
+                user.set_password(secrets.token_urlsafe(8))
+                db.session.add(user)
+                db.session.flush()
 
         enrollment = CourseEnrollment.query.filter_by(course_id=course.id, user_id=user.id).first()
         if not enrollment:
