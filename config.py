@@ -27,6 +27,7 @@ class Config:
     # Stripe configuration
     STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
     STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
+    STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 
     # Hotmart webhook secret for validating callbacks
     HOTMART_WEBHOOK_SECRET = os.environ.get('HOTMART_WEBHOOK_SECRET', '')

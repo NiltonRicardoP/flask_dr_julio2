@@ -32,6 +32,8 @@ try:
 except ImportError:  # pragma: no cover - Stripe optional for tests
     stripe = None
 
+from payments import StripeGateway
+
 # Create a Blueprint for the main routes
 main_bp = Blueprint('main_bp', __name__)
 
@@ -265,34 +267,83 @@ def pay_course(enrollment_id):
     return render_template('pay_course.html', enrollment=enrollment, form=form)
 
 
-@main_bp.route('/course/<int:id>/buy')
+@main_bp.route('/courses/<int:id>/buy', methods=['GET', 'POST'])
+@login_required
 def buy_course(id):
     course = Course.query.get_or_404(id)
+
+    enrollment = CourseEnrollment.query.filter_by(course_id=id, user_id=current_user.id).first()
+    if enrollment and enrollment.payment_status == 'paid':
+        flash('Você já possui acesso a este curso.', 'info')
+        return redirect(url_for('student_bp.dashboard'))
+
+    if not enrollment:
+        enrollment = CourseEnrollment(
+            course_id=id,
+            user_id=current_user.id,
+            name=current_user.username,
+            email=current_user.email,
+            payment_status='pending',
+        )
+        db.session.add(enrollment)
+        db.session.commit()
+
     if stripe is None or not current_app.config.get('STRIPE_SECRET_KEY'):
         flash('Sistema de pagamento indisponível.', 'danger')
         return redirect(url_for('main_bp.course_page', id=id))
 
-    stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
+    if request.method == 'POST':
+        method = request.form.get('payment_method', 'card')
+        gateway = StripeGateway()
+        session = gateway.create_checkout_session(
+            amount=course.price,
+            currency='brl',
+            success_url=url_for('main_bp.payment_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('main_bp.course_page', id=id, _external=True),
+            payment_method_types=[method],
+            metadata={'enrollment_id': enrollment.id, 'course_title': course.title},
+        )
+        transaction = PaymentTransaction(
+            enrollment_id=enrollment.id,
+            amount=course.price,
+            provider_id=session.id,
+            status='pending',
+        )
+        db.session.add(transaction)
+        db.session.commit()
+        return redirect(session.url, code=303)
 
-    session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=[{
-            'price_data': {
-                'currency': 'brl',
-                'product_data': {'name': course.title},
-                'unit_amount': int(course.price * 100)
-            },
-            'quantity': 1
-        }],
-        mode='payment',
-        success_url=url_for('main_bp.purchase_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url=url_for('main_bp.course_page', id=id, _external=True)
-    )
+    return render_template('pay_course.html', enrollment=enrollment)
 
-    purchase = CoursePurchase(course_id=course.id, amount=course.price, stripe_session_id=session.id)
-    db.session.add(purchase)
-    db.session.commit()
-    return redirect(session.url, code=303)
+
+@main_bp.route('/course/<int:id>/buy', methods=['GET', 'POST'])
+def buy_course_alias(id):
+    return buy_course(id)
+
+
+@main_bp.route('/payment/success')
+@login_required
+def payment_success():
+    session_id = request.args.get('session_id')
+    if not session_id:
+        flash('Sessão inválida.', 'danger')
+        return redirect(url_for('student_bp.dashboard'))
+
+    if stripe is None or not current_app.config.get('STRIPE_SECRET_KEY'):
+        flash('Sistema de pagamento indisponível.', 'danger')
+        return redirect(url_for('student_bp.dashboard'))
+
+    gateway = StripeGateway()
+    session = gateway.retrieve_session(session_id)
+    transaction = PaymentTransaction.query.filter_by(provider_id=session_id).first()
+    if session and session.payment_status == 'paid' and transaction:
+        transaction.status = 'paid'
+        transaction.enrollment.payment_status = 'paid'
+        db.session.commit()
+        flash('Pagamento confirmado com sucesso.', 'success')
+    else:
+        flash('Pagamento não confirmado.', 'danger')
+    return redirect(url_for('student_bp.dashboard'))
 
 
 @main_bp.route('/purchase/success')
@@ -308,6 +359,30 @@ def purchase_success():
         db.session.commit()
 
     return render_template('purchase_success.html', purchase=purchase)
+
+
+@main_bp.route('/webhook/stripe', methods=['POST'])
+def stripe_webhook():
+    if stripe is None or not current_app.config.get('STRIPE_SECRET_KEY'):
+        return '', 400
+
+    gateway = StripeGateway()
+    payload = request.data
+    sig = request.headers.get('Stripe-Signature', '')
+    try:
+        event = gateway.construct_event(payload, sig)
+    except Exception:
+        return '', 400
+
+    if event.get('type') == 'checkout.session.completed':
+        session = event['data']['object']
+        txn = PaymentTransaction.query.filter_by(provider_id=session['id']).first()
+        if txn:
+            txn.status = 'paid'
+            if txn.enrollment:
+                txn.enrollment.payment_status = 'paid'
+            db.session.commit()
+    return '', 200
 
 
 @main_bp.route('/registration/<int:registration_id>/success')
