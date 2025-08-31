@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user, login_user
 from datetime import datetime
 import hmac
 import hashlib
@@ -172,6 +172,7 @@ def register_course(id):
                 user.set_password(secrets.token_urlsafe(8))
                 db.session.add(user)
                 db.session.flush()
+            login_user(user)
 
         enrollment = CourseEnrollment.query.filter_by(course_id=course.id, user_id=user.id).first()
         if not enrollment:
@@ -195,6 +196,7 @@ def register_course(id):
         )
         db.session.add(transaction)
         db.session.commit()
+        return enrollment
 
     if form.validate_on_submit():
         registration = CourseRegistration(
@@ -234,8 +236,8 @@ def register_course(id):
         else:
             registration.payment_status = 'paid'
             db.session.commit()
-            _finalize_enrollment(registration)
-            return redirect(url_for('main_bp.registration_success', registration_id=registration.id))
+            enrollment = _finalize_enrollment(registration)
+            return redirect(url_for('main_bp.course_access', enrollment_id=enrollment.id))
 
     return render_template('course_register.html', course=course, form=form, settings=settings)
 
@@ -346,6 +348,7 @@ def purchase_success():
 def registration_success(registration_id):
     registration = CourseRegistration.query.get_or_404(registration_id)
     settings = Settings.query.first()
+    enrollment = None
     if registration.payment_status != 'paid' and stripe and registration.payments:
         stripe.api_key = current_app.config.get('STRIPE_SECRET_KEY')
         session = stripe.checkout.Session.retrieve(registration.payments[0].transaction_id)
@@ -362,6 +365,8 @@ def registration_success(registration_id):
             user.set_password(secrets.token_urlsafe(8))
             db.session.add(user)
             db.session.flush()
+        if not current_user.is_authenticated:
+            login_user(user)
 
         enrollment = CourseEnrollment.query.filter_by(course_id=registration.course_id, user_id=user.id).first()
         if not enrollment:
@@ -389,7 +394,7 @@ def registration_success(registration_id):
             db.session.add(txn)
         db.session.commit()
 
-    return render_template('registration_success.html', registration=registration, settings=settings)
+    return render_template('registration_success.html', registration=registration, settings=settings, enrollment=enrollment)
 
 
 @main_bp.route('/curso/acesso/<int:enrollment_id>')
