@@ -87,3 +87,13 @@ Também é possível comprar o curso diretamente via Stripe no endpoint `/course
 Para isso defina `STRIPE_SECRET_KEY` e `STRIPE_PUBLIC_KEY` no arquivo `.env`.
 As compras realizadas por esse fluxo são registradas no modelo `CoursePurchase`.
 
+### Upload de vídeos do curso
+
+Os materiais em vídeo devem ser enviados pelo painel administrativo ao editar ou criar um curso. Cada arquivo é armazenado na pasta `course_content/<id_do_curso>` e fica disponível apenas para alunos matriculados.
+
+1. Acesse **Admin > Cursos** e escolha **Adicionar** ou **Editar**.
+2. Utilize o campo **Vídeo** para selecionar o arquivo desejado e salve o formulário.
+3. O vídeo poderá ser reproduzido pelos alunos na página do curso através de um `<video>` protegido por token temporário.
+
+Caso prefira hospedar os vídeos em serviços externos (como S3/CloudFront ou Vimeo), basta preencher o campo **URL de Acesso** do curso com o link correspondente.
+

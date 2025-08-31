@@ -10,6 +10,9 @@ if __name__ == '__main__':
     courses_dir = os.path.join(uploads_dir, 'courses')
     if not os.path.exists(courses_dir):
         os.makedirs(courses_dir)
+    content_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'course_content')
+    if not os.path.exists(content_dir):
+        os.makedirs(content_dir)
         
     # Initialize default data (admin user and settings)
     create_initial_data()
