@@ -1,11 +1,12 @@
 import json
 import hmac
 import hashlib
+import logging
 from unittest.mock import patch
 
 import pytest
 
-from models import Course, User, CourseEnrollment, PaymentTransaction
+from models import Course, User, CourseEnrollment
 from extensions import db
 
 
@@ -16,15 +17,7 @@ def create_course(**kwargs):
     return course
 
 
-@pytest.mark.parametrize(
-    'webhook_status,expected_status',
-    [
-        ('approved', 'paid'),
-        ('refunded', 'refunded'),
-        ('canceled', 'canceled'),
-    ],
-)
-def test_hotmart_webhook_creates_enrollment(client, webhook_status, expected_status):
+def test_hotmart_webhook_creates_enrollment(client, caplog):
     with client.application.app_context():
         course = create_course(title='Webhook Course', description='desc', price=100, is_active=True)
         course_id = course.id
@@ -32,13 +25,12 @@ def test_hotmart_webhook_creates_enrollment(client, webhook_status, expected_sta
 
     secret = 'whsec'
     client.application.config['HOTMART_WEBHOOK_SECRET'] = secret
-    email = f'hook-{webhook_status}@example.com'
+    email = 'hook-approved@example.com'
     payload = {
-        'status': webhook_status,
+        'status': 'approved',
         'id': course_id,
         'email': email,
         'name': 'Hook User',
-        'amount': 100,
         'transaction_id': 'tx123',
     }
     body = json.dumps(payload).encode()
@@ -54,14 +46,15 @@ def test_hotmart_webhook_creates_enrollment(client, webhook_status, expected_sta
 
     with patch('routes.secrets.token_urlsafe', return_value='temp-pass'):
         with patch.object(mail_ext, 'send', side_effect=fake_send):
-            resp = client.post(
-                '/webhook/hotmart',
-                data=body,
-                headers={
-                    'Content-Type': 'application/json',
-                    'X-HOTMART-HMAC-SHA256': signature,
-                },
-            )
+            with caplog.at_level(logging.INFO):
+                resp = client.post(
+                    '/webhook/hotmart',
+                    data=body,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'X-HOTMART-HMAC-SHA256': signature,
+                    },
+                )
 
     assert resp.status_code == 200
     assert len(sent_messages) == 1
@@ -69,6 +62,7 @@ def test_hotmart_webhook_creates_enrollment(client, webhook_status, expected_sta
     assert login_path in msg_body
     assert 'temp-pass' in msg_body
     assert 'Altere sua senha' in msg_body
+    assert any('Hotmart webhook received' in r.getMessage() for r in caplog.records)
 
     with client.application.app_context():
         user = User.query.filter_by(email=email).first()
@@ -76,9 +70,31 @@ def test_hotmart_webhook_creates_enrollment(client, webhook_status, expected_sta
         assert user.check_password('temp-pass')
         enrollment = CourseEnrollment.query.filter_by(course_id=course_id, email=email).first()
         assert enrollment is not None
-        assert enrollment.payment_status == expected_status
-        txn = PaymentTransaction.query.filter_by(enrollment_id=enrollment.id).first()
-        assert txn is not None
-        assert txn.amount == 100
-        assert txn.provider_id == 'tx123'
-        assert txn.status == expected_status
+        assert enrollment.payment_status == 'paid'
+        assert enrollment.transaction_id == 'tx123'
+
+
+def test_hotmart_webhook_invalid_signature(client):
+    with client.application.app_context():
+        course = create_course(title='Webhook Course', description='desc', price=100, is_active=True)
+        course_id = course.id
+
+    secret = 'whsec'
+    client.application.config['HOTMART_WEBHOOK_SECRET'] = secret
+    payload = {
+        'status': 'approved',
+        'id': course_id,
+        'email': 'x@example.com',
+        'transaction_id': 'bad',
+    }
+    body = json.dumps(payload).encode()
+    signature = 'invalid'
+    resp = client.post(
+        '/webhook/hotmart',
+        data=body,
+        headers={
+            'Content-Type': 'application/json',
+            'X-HOTMART-HMAC-SHA256': signature,
+        },
+    )
+    assert resp.status_code == 403

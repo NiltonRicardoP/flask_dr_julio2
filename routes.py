@@ -512,38 +512,32 @@ def hotmart_webhook():
     secret = current_app.config.get('HOTMART_WEBHOOK_SECRET', '')
     signature = request.headers.get('X-HOTMART-HMAC-SHA256', '')
     if not secret or not signature:
+        current_app.logger.warning('Hotmart webhook missing credentials')
         return 'Unauthorized', 403
     expected = hmac.new(secret.encode(), request.data, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(expected, signature):
+        current_app.logger.warning('Hotmart webhook invalid signature')
         return 'Unauthorized', 403
 
     payload = request.get_json(silent=True) or {}
-    raw_status = payload.get('status')
-    product_id = payload.get('id') or payload.get('product', {}).get('id')
+    status = payload.get('status')
+    product_id = payload.get('product_id') or payload.get('id') or payload.get('product', {}).get('id')
     email = payload.get('email') or payload.get('buyer', {}).get('email')
-    name = payload.get('name') or payload.get('buyer', {}).get('name') or (email.split('@')[0] if email else '')
-    amount = float(payload.get('amount') or payload.get('price') or 0)
-    txn_id = payload.get('transaction_id') or payload.get('purchase', {}).get('id')
+    txn_id = payload.get('transaction') or payload.get('transaction_id') or payload.get('purchase', {}).get('id')
 
-    if not raw_status or not product_id or not email:
+    current_app.logger.info('Hotmart webhook received: status=%s transaction=%s', status, txn_id)
+
+    if not all([status, product_id, email, txn_id]):
+        current_app.logger.warning('Hotmart webhook missing fields')
         return 'Invalid payload', 400
 
-    status_map = {
-        'approved': 'paid',
-        'completed': 'paid',
-        'refunded': 'refunded',
-        'chargeback': 'refunded',
-        'canceled': 'canceled',
-        'cancelled': 'canceled',
-        'expired': 'canceled',
-        'waiting_payment': 'pending',
-        'pending': 'pending',
-        'pending_analysis': 'pending',
-    }
-    status = status_map.get(raw_status, raw_status)
+    if status != 'approved':
+        current_app.logger.info('Ignoring Hotmart transaction %s with status %s', txn_id, status)
+        return '', 200
 
     course = Course.query.filter_by(id=product_id).first()
     if not course:
+        current_app.logger.warning('Hotmart course %s not found', product_id)
         return 'Course not found', 404
 
     user = User.query.filter_by(email=email).first()
@@ -557,31 +551,27 @@ def hotmart_webhook():
         db.session.add(user)
         db.session.flush()
         new_user = True
+        current_app.logger.info('Created user %s for transaction %s', user.id, txn_id)
 
     enrollment = CourseEnrollment.query.filter_by(course_id=course.id, user_id=user.id).first()
     if not enrollment:
         enrollment = CourseEnrollment(
             course_id=course.id,
             user_id=user.id,
-            name=name,
+            name=user.username,
             email=email,
-            payment_status=status,
+            payment_status='paid',
+            transaction_id=txn_id,
         )
         db.session.add(enrollment)
+        current_app.logger.info('Created enrollment %s for user %s', enrollment.id, user.id)
     else:
-        enrollment.payment_status = status
-    if status == 'paid' and not enrollment.access_start:
+        enrollment.payment_status = 'paid'
+        enrollment.transaction_id = txn_id
+        current_app.logger.info('Updated enrollment %s for user %s', enrollment.id, user.id)
+    if not enrollment.access_start:
         enrollment.activate_access()
 
-    db.session.flush()
-
-    transaction = PaymentTransaction(
-        enrollment_id=enrollment.id,
-        amount=amount or course.price,
-        provider_id=txn_id,
-        status=status,
-    )
-    db.session.add(transaction)
     db.session.commit()
 
     mail = current_app.extensions.get('mail')
@@ -603,7 +593,7 @@ def hotmart_webhook():
             )
             mail.send(msg)
         except Exception:
-            pass
+            current_app.logger.exception('Failed to send email for transaction %s', txn_id)
 
     return '', 200
 

@@ -175,6 +175,7 @@ class CourseEnrollment(db.Model):
     email = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
     payment_status = db.Column(db.String(20), default='pending')
+    transaction_id = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     access_start = db.Column(db.DateTime)
     access_end = db.Column(db.DateTime)
