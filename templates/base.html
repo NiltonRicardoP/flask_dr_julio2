@@ -46,6 +46,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main_bp.contact') }}">Contato</a>
                     </li>
+                    {% if current_user.is_authenticated and current_user.role == 'student' %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('student_bp.dashboard') }}">Meu Painel</a></li>
+                    {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('student_bp.login') }}">Área do Aluno</a></li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
