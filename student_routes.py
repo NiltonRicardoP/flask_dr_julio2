@@ -53,7 +53,7 @@ def register():
 def dashboard():
     if current_user.role != 'student':
         return redirect(url_for('admin_bp.dashboard'))
-    enrollments = CourseEnrollment.query.filter_by(email=current_user.email).all()
+    enrollments = CourseEnrollment.query.filter_by(user_id=current_user.id).all()
     return render_template('student/dashboard.html', enrollments=enrollments)
 
 
