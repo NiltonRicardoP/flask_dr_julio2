@@ -5,7 +5,17 @@
 <div class="container py-5 mt-5">
     <h1 class="mb-4 text-center">Inscrição Confirmada</h1>
     <p class="text-center text-light">Obrigado por se inscrever no curso {{ registration.course.title }}.</p>
-    {% if registration.payment_status == 'paid' %}
+    {% if registration.payment_status == 'paid' and enrollment %}
+        <p class="text-center text-light">Pagamento confirmado! Você será redirecionado em instantes.</p>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('main_bp.course_access', enrollment_id=enrollment.id) }}" class="btn btn-primary">Ir para o curso</a>
+        </div>
+        <script>
+            setTimeout(function() {
+                window.location.href = "{{ url_for('main_bp.course_access', enrollment_id=enrollment.id) }}";
+            }, 3000);
+        </script>
+    {% elif registration.payment_status == 'paid' %}
         <p class="text-center text-light">Pagamento confirmado! {% if current_user.is_authenticated %}Acesse seu <a class="text-decoration-underline" href="{{ url_for('student_bp.dashboard') }}">dashboard</a> para iniciar o curso.{% else %}Acesse o <a class="text-decoration-underline" href="{{ url_for('student_bp.login') }}">portal do aluno</a> para iniciar o curso.{% endif %}</p>
     {% else %}
         <p class="text-center text-light">Aguardando confirmação de pagamento.</p>
