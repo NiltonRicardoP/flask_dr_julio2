@@ -280,6 +280,8 @@ def register_course(id):
 @login_required
 def pay_course(enrollment_id):
     enrollment = CourseEnrollment.query.get_or_404(enrollment_id)
+    if enrollment.user_id != current_user.id:
+        abort(403)
     form = ConfirmPaymentForm()
     if enrollment.payment_status == 'paid':
         return redirect(url_for('main_bp.course_access', enrollment_id=enrollment.id))
