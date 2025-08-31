@@ -5,6 +5,7 @@ import hmac
 import hashlib
 import secrets
 import os
+import json
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from flask_mail import Message
 
@@ -519,13 +520,22 @@ def hotmart_webhook():
         current_app.logger.warning('Hotmart webhook invalid signature')
         return 'Unauthorized', 403
 
-    payload = request.get_json(silent=True) or {}
+    try:
+        payload = json.loads(request.data.decode('utf-8') or '{}')
+    except (ValueError, AttributeError):
+        payload = {}
     status = payload.get('status')
     product_id = payload.get('product_id') or payload.get('id') or payload.get('product', {}).get('id')
     email = payload.get('email') or payload.get('buyer', {}).get('email')
     txn_id = payload.get('transaction') or payload.get('transaction_id') or payload.get('purchase', {}).get('id')
 
-    current_app.logger.info('Hotmart webhook received: status=%s transaction=%s', status, txn_id)
+    current_app.logger.info(
+        'Hotmart webhook received: status=%s product_id=%s email=%s transaction=%s',
+        status,
+        product_id,
+        email,
+        txn_id,
+    )
 
     if not all([status, product_id, email, txn_id]):
         current_app.logger.warning('Hotmart webhook missing fields')
