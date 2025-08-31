@@ -576,6 +576,7 @@ def hotmart_webhook():
             transaction_id=txn_id,
         )
         db.session.add(enrollment)
+        db.session.flush()
         current_app.logger.info('Created enrollment %s for user %s', enrollment.id, user.id)
     else:
         enrollment.payment_status = 'paid'
@@ -583,6 +584,15 @@ def hotmart_webhook():
         current_app.logger.info('Updated enrollment %s for user %s', enrollment.id, user.id)
     if not enrollment.access_start:
         enrollment.activate_access()
+
+    amount = payload.get('price') or payload.get('amount') or course.price
+    transaction = PaymentTransaction(
+        enrollment_id=enrollment.id,
+        amount=amount,
+        provider_id=txn_id,
+        status='paid'
+    )
+    db.session.add(transaction)
 
     db.session.commit()
 

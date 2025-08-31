@@ -2,7 +2,7 @@ import json
 import hmac
 import hashlib
 
-from models import Course, User, CourseEnrollment
+from models import Course, User, CourseEnrollment, PaymentTransaction
 from extensions import db
 
 
@@ -48,6 +48,10 @@ def test_webhook_payment_allows_course_access(client):
         assert enrollment is not None
         assert enrollment.access_end is not None
         assert enrollment.transaction_id == 'tx999'
+        txn = PaymentTransaction.query.filter_by(enrollment_id=enrollment.id, provider_id='tx999').first()
+        assert txn is not None
+        course = Course.query.get(course_id)
+        assert txn.amount == course.price
         enrollment_id = enrollment.id
 
     resp_no_login = client.get(f'/curso/acesso/{enrollment_id}')

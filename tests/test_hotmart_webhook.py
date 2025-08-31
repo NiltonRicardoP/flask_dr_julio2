@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from models import Course, User, CourseEnrollment
+from models import Course, User, CourseEnrollment, PaymentTransaction
 from extensions import db
 
 
@@ -72,6 +72,10 @@ def test_hotmart_webhook_creates_enrollment(client, caplog):
         assert enrollment is not None
         assert enrollment.payment_status == 'paid'
         assert enrollment.transaction_id == 'tx123'
+        txn = PaymentTransaction.query.filter_by(enrollment_id=enrollment.id, provider_id='tx123').first()
+        assert txn is not None
+        course = Course.query.get(course_id)
+        assert txn.amount == course.price
 
 
 def test_hotmart_webhook_invalid_signature(client):
