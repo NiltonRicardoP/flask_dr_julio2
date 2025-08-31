@@ -31,3 +31,6 @@ class Config:
 
     # Hotmart webhook secret for validating callbacks
     HOTMART_WEBHOOK_SECRET = os.environ.get('HOTMART_WEBHOOK_SECRET', '')
+
+    # Default number of days a student can access a course after payment
+    COURSE_ACCESS_DAYS = int(os.environ.get('COURSE_ACCESS_DAYS', 365))
