@@ -9,6 +9,7 @@ from extensions import db  # Correto: db importado do extensions.py
 from models import User, Event, Appointment, Settings
 from routes import main_bp
 from admin_routes import admin_bp
+from student_routes import student_bp
 
 # Create Flask application
 app = Flask(__name__)
@@ -18,12 +19,13 @@ app.config.from_object(Config)
 db.init_app(app)
 migrate = Migrate(app, db)
 login_manager = LoginManager(app)
-login_manager.login_view = 'admin_bp.login'
+login_manager.login_view = 'student_bp.login'
 mail = Mail(app)
 
 # Register blueprints
 app.register_blueprint(main_bp)
 app.register_blueprint(admin_bp, url_prefix='/admin')
+app.register_blueprint(student_bp, url_prefix='/aluno')
 
 # Flask-Login: Carregador de usuário
 @login_manager.user_loader
@@ -35,7 +37,7 @@ def create_initial_data():
     with app.app_context():
         db.create_all()
         if not User.query.filter_by(username='admin').first():
-            user = User(username='admin', email='admin@example.com')
+            user = User(username='admin', email='admin@example.com', role='admin')
             user.set_password('admin123')
             db.session.add(user)
 
