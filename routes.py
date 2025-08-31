@@ -233,6 +233,7 @@ def course_detail(id):
 
 
 @main_bp.route('/pagamento/<int:enrollment_id>', methods=['GET', 'POST'])
+@login_required
 def pay_course(enrollment_id):
     enrollment = CourseEnrollment.query.get_or_404(enrollment_id)
     form = ConfirmPaymentForm()
@@ -248,8 +249,8 @@ def pay_course(enrollment_id):
             )
             db.session.add(transaction)
             db.session.commit()
-            flash('Pagamento realizado com sucesso!', 'success')
-            return redirect(url_for('main_bp.course_access', enrollment_id=enrollment.id))
+            flash('Pagamento realizado', 'success')
+            return redirect(url_for('student_bp.dashboard'))
         except Exception as e:
             db.session.rollback()
             flash(f'Ocorreu um erro no pagamento: {e}', 'danger')
