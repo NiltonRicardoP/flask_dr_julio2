@@ -1,13 +1,20 @@
-"""Add user_id to CourseEnrollment"""
+"""Add user_id to course_enrollment
 
+Revision ID: bfbfdff3ce72
+Revises: f1abe2984aa1
+Create Date: 2025-08-31 22:40:52.690821
+
+"""
 from alembic import op
 import sqlalchemy as sa
 
+
 # revision identifiers, used by Alembic.
-revision = 'f4797847a3d9'
-down_revision = 'add_role_to_user'
+revision = 'bfbfdff3ce72'
+down_revision = 'f1abe2984aa1'
 branch_labels = None
 depends_on = None
+
 
 def upgrade():
     with op.batch_alter_table('course_enrollment') as batch_op:

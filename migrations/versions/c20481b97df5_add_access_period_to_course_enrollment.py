@@ -1,11 +1,17 @@
-"""add access period to CourseEnrollment"""
+"""Add access period to course_enrollment
 
+Revision ID: c20481b97df5
+Revises: bfbfdff3ce72
+Create Date: 2025-08-31 22:41:01.322309
+
+"""
 from alembic import op
 import sqlalchemy as sa
 
+
 # revision identifiers, used by Alembic.
-revision = 'b6f3d6e3a6aa'
-down_revision = 'f4797847a3d9'
+revision = 'c20481b97df5'
+down_revision = 'bfbfdff3ce72'
 branch_labels = None
 depends_on = None
 

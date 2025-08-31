@@ -1,10 +1,17 @@
-"""Add start and end dates to Course"""
+"""Add start and end dates to course
 
+Revision ID: 108210c85dc5
+Revises: 7221282e432a
+Create Date: 2025-08-31 22:41:18.379513
+
+"""
 from alembic import op
 import sqlalchemy as sa
 
-revision = '0f9e49ac7bd9'
-down_revision = '2491c86f1287'
+
+# revision identifiers, used by Alembic.
+revision = '108210c85dc5'
+down_revision = '7221282e432a'
 branch_labels = None
 depends_on = None
 
