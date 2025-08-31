@@ -76,18 +76,22 @@
             <div class="row">
                 <div class="col-md-4">
                     <h5>Dr. Julio Vasconcelos</h5>
-                                        {% if settings.about_text %}
-    <p>{{ settings.about_text | truncate(100) }}</p>
-{% else %}
-    <p>Informações ainda não disponíveis.</p>
-{% endif %}
+                    {% if settings and settings.about_text %}
+                        <p>{{ settings.about_text | truncate(100) }}</p>
+                    {% else %}
+                        <p>Informações ainda não disponíveis.</p>
+                    {% endif %}
                 </div>
                 <div class="col-md-4">
                     <h5>Contato</h5>
                     <ul class="list-unstyled">
-                        {% if settings %}
+                        {% if settings and settings.contact_email %}
                             <li><i class="fas fa-envelope me-2"></i>{{ settings.contact_email }}</li>
+                        {% endif %}
+                        {% if settings and settings.contact_phone %}
                             <li><i class="fas fa-phone me-2"></i>{{ settings.contact_phone }}</li>
+                        {% endif %}
+                        {% if settings and settings.address %}
                             <li><i class="fas fa-map-marker-alt me-2"></i>{{ settings.address }}</li>
                         {% endif %}
                     </ul>
