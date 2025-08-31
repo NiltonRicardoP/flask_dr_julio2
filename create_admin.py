@@ -1,4 +1,3 @@
-import os
 from app import app
 from models import db, User
 
@@ -13,6 +12,6 @@ with app.app_context():
         print("✅ Usuário admin criado com sucesso.")
     else:
         admin.role = 'admin'
-        admin.set_password(os.environ.get("ADMIN_PASSWORD", "12345678"))
+        admin.set_password("12345678")
         db.session.commit()
         print("🔄 Usuário admin atualizado.")
