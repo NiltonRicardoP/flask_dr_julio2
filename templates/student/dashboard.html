@@ -6,7 +6,9 @@
   {% if enrollments %}
     <ul class="list-group">
     {% for e in enrollments %}
-      <li class="list-group-item">{{ e.course.title }}</li>
+      <li class="list-group-item">
+        <a href="{{ url_for('main_bp.course_access', enrollment_id=e.id) }}">{{ e.course.title }}</a>
+      </li>
     {% endfor %}
     </ul>
   {% else %}
