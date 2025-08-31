@@ -157,6 +157,39 @@ def register_course(id):
     course = Course.query.get_or_404(id)
     settings = Settings.query.first()
     form = CourseRegistrationForm()
+
+    def _finalize_enrollment(registration, transaction_id=None):
+        user = User.query.filter_by(email=registration.participant_email).first()
+        if not user:
+            username = registration.participant_email.split('@')[0]
+            user = User(username=username, email=registration.participant_email, role='student')
+            user.set_password(secrets.token_urlsafe(8))
+            db.session.add(user)
+            db.session.flush()
+
+        enrollment = CourseEnrollment.query.filter_by(course_id=course.id, user_id=user.id).first()
+        if not enrollment:
+            enrollment = CourseEnrollment(
+                course_id=course.id,
+                user_id=user.id,
+                name=registration.participant_name,
+                email=registration.participant_email,
+                payment_status='paid'
+            )
+            db.session.add(enrollment)
+            db.session.flush()
+        else:
+            enrollment.payment_status = 'paid'
+
+        transaction = PaymentTransaction(
+            enrollment_id=enrollment.id,
+            amount=course.price,
+            provider_id=transaction_id or 'manual',
+            status='paid'
+        )
+        db.session.add(transaction)
+        db.session.commit()
+
     if form.validate_on_submit():
         registration = CourseRegistration(
             course_id=course.id,
@@ -195,6 +228,7 @@ def register_course(id):
         else:
             registration.payment_status = 'paid'
             db.session.commit()
+            _finalize_enrollment(registration)
             return redirect(url_for('main_bp.registration_success', registration_id=registration.id))
 
     return render_template('course_register.html', course=course, form=form, settings=settings)
@@ -313,6 +347,42 @@ def registration_success(registration_id):
             registration.payment_status = 'paid'
             registration.payments[0].status = 'paid'
             db.session.commit()
+
+    if registration.payment_status == 'paid':
+        user = User.query.filter_by(email=registration.participant_email).first()
+        if not user:
+            username = registration.participant_email.split('@')[0]
+            user = User(username=username, email=registration.participant_email, role='student')
+            user.set_password(secrets.token_urlsafe(8))
+            db.session.add(user)
+            db.session.flush()
+
+        enrollment = CourseEnrollment.query.filter_by(course_id=registration.course_id, user_id=user.id).first()
+        if not enrollment:
+            enrollment = CourseEnrollment(
+                course_id=registration.course_id,
+                user_id=user.id,
+                name=registration.participant_name,
+                email=registration.participant_email,
+                payment_status='paid'
+            )
+            db.session.add(enrollment)
+            db.session.flush()
+        else:
+            enrollment.payment_status = 'paid'
+
+        provider_id = registration.payments[0].transaction_id if registration.payments else 'manual'
+        existing_txn = PaymentTransaction.query.filter_by(enrollment_id=enrollment.id, provider_id=provider_id).first()
+        if not existing_txn:
+            txn = PaymentTransaction(
+                enrollment_id=enrollment.id,
+                amount=registration.course.price,
+                provider_id=provider_id,
+                status='paid'
+            )
+            db.session.add(txn)
+        db.session.commit()
+
     return render_template('registration_success.html', registration=registration, settings=settings)
 
 

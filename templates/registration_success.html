@@ -6,7 +6,7 @@
     <h1 class="mb-4 text-center">Inscrição Confirmada</h1>
     <p class="text-center text-light">Obrigado por se inscrever no curso {{ registration.course.title }}.</p>
     {% if registration.payment_status == 'paid' %}
-        <p class="text-center text-light">Pagamento confirmado!</p>
+        <p class="text-center text-light">Pagamento confirmado! {% if current_user.is_authenticated %}Acesse seu <a class="text-decoration-underline" href="{{ url_for('student_bp.dashboard') }}">dashboard</a> para iniciar o curso.{% else %}Acesse o <a class="text-decoration-underline" href="{{ url_for('student_bp.login') }}">portal do aluno</a> para iniciar o curso.{% endif %}</p>
     {% else %}
         <p class="text-center text-light">Aguardando confirmação de pagamento.</p>
     {% endif %}
