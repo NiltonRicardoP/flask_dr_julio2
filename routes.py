@@ -637,13 +637,6 @@ def course_catalog_detail(course_id):
     settings = Settings.query.first()
     return render_template('course_catalog_detail.html', course=course, settings=settings)
 
-@main_bp.context_processor
-def inject_settings():
-    settings = Settings.query.first()
-    # Add current_year to the context for use in all templates
-    return dict(settings=settings or {}, current_year=datetime.now().year)
-
-
 @main_bp.route('/galeria')
 def gallery():
     from models import GalleryItem  # (após criarmos a model)

@@ -2,11 +2,12 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
+from datetime import datetime
 import os
 
 from config import Config
 from extensions import db  # Correto: db importado do extensions.py
-from models import User
+from models import User, Settings
 from routes import main_bp
 from admin_routes import admin_bp
 from student_routes import student_bp
@@ -31,6 +32,12 @@ app.register_blueprint(student_bp, url_prefix='/aluno')
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+
+@app.context_processor
+def inject_settings():
+    settings = Settings.query.first()
+    return dict(settings=settings or {}, current_year=datetime.now().year)
 
 
 # Criação de pasta de uploads caso não exista

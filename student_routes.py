@@ -1,19 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from forms import LoginForm, UserRegistrationForm
-from models import User, CourseEnrollment, Settings
+from models import User, CourseEnrollment
 from extensions import db
-from datetime import datetime
 
 student_bp = Blueprint('student_bp', __name__)
-
-
-@student_bp.context_processor
-def inject_settings():
-    settings = Settings.query.first()
-    return dict(settings=settings or {}, current_year=datetime.now().year)
-
-
 @student_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
