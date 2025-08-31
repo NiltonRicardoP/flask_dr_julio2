@@ -1,10 +1,17 @@
-"""Add transaction_id to CourseEnrollment"""
+"""Add transaction_id to course_enrollment
 
+Revision ID: 7221282e432a
+Revises: c20481b97df5
+Create Date: 2025-08-31 22:41:10.021687
+
+"""
 from alembic import op
 import sqlalchemy as sa
 
-revision = '2491c86f1287'
-down_revision = 'b6f3d6e3a6aa'
+
+# revision identifiers, used by Alembic.
+revision = '7221282e432a'
+down_revision = 'c20481b97df5'
 branch_labels = None
 depends_on = None
 
