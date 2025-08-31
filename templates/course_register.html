@@ -14,20 +14,25 @@
         <div class="col-md-6">
             <form method="POST">
                 {{ form.csrf_token }}
-                <div class="mb-3">
-                    {{ form.participant_name.label(class='form-label text-light') }}
-                    {{ form.participant_name(class='form-control bg-darker text-white') }}
-                    {% for error in form.participant_name.errors %}
-                    <div class="invalid-feedback d-block">{{ error }}</div>
-                    {% endfor %}
-                </div>
-                <div class="mb-3">
-                    {{ form.participant_email.label(class='form-label text-light') }}
-                    {{ form.participant_email(class='form-control bg-darker text-white') }}
-                    {% for error in form.participant_email.errors %}
-                    <div class="invalid-feedback d-block">{{ error }}</div>
-                    {% endfor %}
-                </div>
+                {% if current_user.is_authenticated %}
+                    {{ form.participant_name(type='hidden') }}
+                    {{ form.participant_email(type='hidden') }}
+                {% else %}
+                    <div class="mb-3">
+                        {{ form.participant_name.label(class='form-label text-light') }}
+                        {{ form.participant_name(class='form-control bg-darker text-white') }}
+                        {% for error in form.participant_name.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.participant_email.label(class='form-label text-light') }}
+                        {{ form.participant_email(class='form-control bg-darker text-white') }}
+                        {% for error in form.participant_email.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 <div class="d-grid">
                     {{ form.submit(class='btn btn-primary') }}
                 </div>
