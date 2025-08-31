@@ -1,6 +1,7 @@
 from flask import url_for
 from models import Course, CourseEnrollment
 from extensions import db
+from datetime import datetime
 
 
 def create_course(**kwargs):
@@ -45,3 +46,50 @@ def test_course_detail_post_creates_enrollment(client):
         assert enrollment.email == 'test@example.com'
         assert enrollment.course_id == course.id
         assert resp.headers['Location'].endswith(f'/pagamento/{enrollment.id}')
+
+
+def test_courses_order_by_created_at_without_start_date(client):
+    """Courses should be ordered by created_at when no start_date attribute exists."""
+    with client.application.app_context():
+        create_course(
+            title='First',
+            description='desc',
+            price=10,
+            is_active=True,
+            created_at=datetime(2023, 1, 1),
+        )
+        create_course(
+            title='Second',
+            description='desc',
+            price=10,
+            is_active=True,
+            created_at=datetime(2023, 1, 2),
+        )
+    resp = client.get('/courses')
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+    assert html.index('First') < html.index('Second')
+
+
+def test_courses_order_by_created_at_with_start_date_attr(client, monkeypatch):
+    """Even if Course.start_date exists, ordering should use created_at."""
+    monkeypatch.setattr(Course, 'start_date', None, raising=False)
+    with client.application.app_context():
+        create_course(
+            title='Early',
+            description='desc',
+            price=10,
+            is_active=True,
+            created_at=datetime(2023, 1, 1),
+        )
+        create_course(
+            title='Late',
+            description='desc',
+            price=10,
+            is_active=True,
+            created_at=datetime(2023, 1, 2),
+        )
+    resp = client.get('/courses')
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+    assert html.index('Early') < html.index('Late')
