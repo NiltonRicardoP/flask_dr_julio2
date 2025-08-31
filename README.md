@@ -14,6 +14,12 @@ Aplicação web em Flask para gerenciamento de agendamentos, eventos e conteúdo
    pip install -r requirements.txt
    ```
 
+3. Execute as migrações e crie o usuário administrador:
+   ```bash
+   flask db upgrade
+   python create_admin.py
+   ```
+
 ## Como executar
 
 A aplicação pode ser iniciada diretamente usando `run.py`:
@@ -23,7 +29,6 @@ python run.py
 ```
 
 Isso criará a pasta `static/uploads` caso não exista e rodará o servidor em `http://localhost:5000`.
-Na primeira execução o script também cria automaticamente um usuário administrador e configurações iniciais.
 
 Para produção é possível utilizar o `Procfile` com Gunicorn. O arquivo `runtime.txt` define a versão do Python.
 
@@ -31,7 +36,7 @@ Para produção é possível utilizar o `Procfile` com Gunicorn. O arquivo `runt
 
 
 As migrações do banco ficam na pasta `migrations/`.
-Depois de clonar o projeto execute `flask db upgrade` para criar todas as tabelas.
+Depois de clonar o projeto execute `flask db upgrade` para criar todas as tabelas e em seguida `python create_admin.py` para inserir ou atualizar o usuário administrador.
 Com o ambiente virtual ativo e `FLASK_APP` apontando para `app.py`, gere uma nova migração sempre que modificar os modelos e aplique-a:
 
 ```bash
