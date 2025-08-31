@@ -25,11 +25,10 @@ def test_webhook_payment_allows_course_access(client):
     secret = 'whsec'
     client.application.config['HOTMART_WEBHOOK_SECRET'] = secret
     payload = {
-        'status': 'paid',
+        'status': 'approved',
         'id': course_id,
         'email': 'student@example.com',
         'name': 'Student',
-        'amount': 50,
         'transaction_id': 'tx999'
     }
     body = json.dumps(payload).encode()
@@ -48,6 +47,7 @@ def test_webhook_payment_allows_course_access(client):
         enrollment = CourseEnrollment.query.filter_by(course_id=course_id, user_id=user_id).first()
         assert enrollment is not None
         assert enrollment.access_end is not None
+        assert enrollment.transaction_id == 'tx999'
         enrollment_id = enrollment.id
 
     resp_no_login = client.get(f'/curso/acesso/{enrollment_id}')
