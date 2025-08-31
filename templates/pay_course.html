@@ -10,6 +10,17 @@
     <div class="text-center mt-4">
         <form method="POST">
             {{ form.csrf_token }}
+            <div class="mb-3">
+                <label class="form-label text-light">Forma de pagamento</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="payment_method" id="payCard" value="card" checked>
+                    <label class="form-check-label text-light" for="payCard">Cartão de crédito</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="payment_method" id="payPix" value="pix">
+                    <label class="form-check-label text-light" for="payPix">PIX</label>
+                </div>
+            </div>
             <button type="submit" class="btn btn-primary">Confirmar Pagamento</button>
         </form>
     </div>
