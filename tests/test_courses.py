@@ -1,6 +1,6 @@
 from models import Course
 from extensions import db
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def create_course(**kwargs):
@@ -42,48 +42,27 @@ def test_course_page_shows_course_info(client):
     assert 'Course' in html
 
 
-def test_courses_order_by_created_at_without_start_date(client):
-    """Courses should be ordered by created_at when no start_date attribute exists."""
+def test_active_courses_order_by_start_date(client):
+    """Upcoming courses should be ordered by start_date."""
     with client.application.app_context():
+        now = datetime.utcnow()
         create_course(
-            title='First',
+            title='Sooner',
             description='desc',
             price=10,
             is_active=True,
-            created_at=datetime(2023, 1, 1),
+            start_date=now + timedelta(days=1),
+            end_date=now + timedelta(days=2),
         )
         create_course(
-            title='Second',
+            title='Later',
             description='desc',
             price=10,
             is_active=True,
-            created_at=datetime(2023, 1, 2),
+            start_date=now + timedelta(days=3),
+            end_date=now + timedelta(days=4),
         )
-    resp = client.get('/courses')
+    resp = client.get('/active-courses')
     assert resp.status_code == 200
     html = resp.get_data(as_text=True)
-    assert html.index('First') < html.index('Second')
-
-
-def test_courses_order_by_created_at_with_start_date_attr(client, monkeypatch):
-    """Even if Course.start_date exists, ordering should use created_at."""
-    monkeypatch.setattr(Course, 'start_date', None, raising=False)
-    with client.application.app_context():
-        create_course(
-            title='Early',
-            description='desc',
-            price=10,
-            is_active=True,
-            created_at=datetime(2023, 1, 1),
-        )
-        create_course(
-            title='Late',
-            description='desc',
-            price=10,
-            is_active=True,
-            created_at=datetime(2023, 1, 2),
-        )
-    resp = client.get('/courses')
-    assert resp.status_code == 200
-    html = resp.get_data(as_text=True)
-    assert html.index('Early') < html.index('Late')
+    assert html.index('Sooner') < html.index('Later')

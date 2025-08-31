@@ -138,6 +138,8 @@ class Course(db.Model):
     image = db.Column(db.String(255))
     price = db.Column(db.Float, default=0.0)
     access_url = db.Column(db.String(255))
+    start_date = db.Column(db.DateTime, nullable=True)
+    end_date = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -146,25 +148,27 @@ class Course(db.Model):
 
     @classmethod
     def get_upcoming_courses(cls):
-        """Return active courses starting today or later if start_date exists."""
-        query = cls.query.filter(cls.is_active == True)
-        if hasattr(cls, "start_date"):
-            query = query.filter(cls.start_date >= datetime.utcnow())
-            order_field = cls.start_date
-        else:
-            order_field = cls.created_at
-        return query.order_by(order_field).all()
+        """Return active courses starting today or later."""
+        return (
+            cls.query.filter(
+                cls.is_active == True,
+                cls.start_date >= datetime.utcnow(),
+            )
+            .order_by(cls.start_date)
+            .all()
+        )
 
     @classmethod
     def get_past_courses(cls):
-        """Return active courses that have ended when date fields exist."""
-        if not hasattr(cls, "end_date"):
-            return []
-        query = cls.query.filter(
-            cls.end_date < datetime.utcnow(), cls.is_active == True
+        """Return active courses that have ended."""
+        return (
+            cls.query.filter(
+                cls.is_active == True,
+                cls.end_date < datetime.utcnow(),
+            )
+            .order_by(cls.start_date.desc())
+            .all()
         )
-        order_field = getattr(cls, "start_date", cls.created_at).desc()
-        return query.order_by(order_field).all()
 
 
 class CourseEnrollment(db.Model):
