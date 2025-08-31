@@ -9,9 +9,7 @@ from flask_mail import Message
 from forms import (
     ContactForm,
     AppointmentForm,
-    CourseEnrollmentForm,
     ConfirmPaymentForm,
-    RegistrationForm,
     CourseRegistrationForm,
 )
 from models import (
@@ -242,38 +240,6 @@ def register_course(id):
     return render_template('course_register.html', course=course, form=form, settings=settings)
 
 
-@main_bp.route('/cursos/<int:id>', methods=['GET', 'POST'])
-def course_detail(id):
-    course = Course.query.get_or_404(id)
-    settings = Settings.query.first()
-    form = CourseEnrollmentForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if not user:
-            username = form.email.data.split('@')[0]
-            user = User(username=username, email=form.email.data, role='student')
-            user.set_password(secrets.token_urlsafe(8))
-            db.session.add(user)
-            db.session.flush()
-
-        enrollment = CourseEnrollment(
-            course_id=course.id,
-            user_id=user.id,
-            name=form.name.data,
-            email=form.email.data,
-            phone=form.phone.data,
-        )
-        try:
-            db.session.add(enrollment)
-            db.session.commit()
-            flash('Inscrição enviada com sucesso!', 'success')
-            return redirect(url_for('main_bp.pay_course', enrollment_id=enrollment.id))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Ocorreu um erro ao registrar sua inscrição: {e}', 'danger')
-    return render_template('course_enrollment.html', course=course, form=form, settings=settings)
-
-
 @main_bp.route('/pagamento/<int:enrollment_id>', methods=['GET', 'POST'])
 @login_required
 def pay_course(enrollment_id):
@@ -304,7 +270,7 @@ def buy_course(id):
     course = Course.query.get_or_404(id)
     if stripe is None or not current_app.config.get('STRIPE_SECRET_KEY'):
         flash('Sistema de pagamento indisponível.', 'danger')
-        return redirect(url_for('main_bp.course_detail', id=id))
+        return redirect(url_for('main_bp.course_page', id=id))
 
     stripe.api_key = current_app.config['STRIPE_SECRET_KEY']
 
@@ -320,7 +286,7 @@ def buy_course(id):
         }],
         mode='payment',
         success_url=url_for('main_bp.purchase_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url=url_for('main_bp.course_detail', id=id, _external=True)
+        cancel_url=url_for('main_bp.course_page', id=id, _external=True)
     )
 
     purchase = CoursePurchase(course_id=course.id, amount=course.price, stripe_session_id=session.id)
@@ -406,7 +372,7 @@ def course_access(enrollment_id):
         return redirect(url_for('student_bp.dashboard'))
     if enrollment.payment_status != 'paid':
         flash('Pagamento não identificado para esta inscrição.', 'warning')
-        return redirect(url_for('main_bp.course_detail', id=enrollment.course_id))
+        return redirect(url_for('main_bp.course_page', id=enrollment.course_id))
     return render_template('course_access.html', enrollment=enrollment)
 
 
