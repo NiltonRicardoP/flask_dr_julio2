@@ -51,7 +51,11 @@ Flask e pelo envio de emails. As principais variáveis são:
 - `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS`, `MAIL_USERNAME`, `MAIL_PASSWORD`,
   `MAIL_DEFAULT_SENDER` – dados para o servidor de email.
 
-Não existem variáveis específicas para cursos ou pagamentos até o momento.
+- `HOTMART_WEBHOOK_SECRET` – segredo para validar notificações do Hotmart.
+- `HOTMART_CLIENT_ID` e `HOTMART_CLIENT_SECRET` – credenciais OAuth da API do Hotmart.
+
+As credenciais do Hotmart podem ser geradas no [Painel de Desenvolvedor do Hotmart](https://developers.hotmart.com/).
+Crie uma nova aplicação para obter o Client ID e o Client Secret e então defina-os no arquivo `.env`.
 
 ## Cursos
 
