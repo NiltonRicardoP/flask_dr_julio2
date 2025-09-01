@@ -21,7 +21,9 @@
                         <p class="text-light">
                             <i class="fas fa-money-bill-wave me-2"></i> R$ {{ '%.2f'|format(course.price) }}
                         </p>
-                        <a href="{{ url_for('main_bp.course_page', id=course.id) }}" class="btn btn-primary">Detalhes</a>
+                        {% if course.purchase_link %}
+                        <a href="{{ course.purchase_link }}" class="btn btn-primary" target="_blank">Comprar na Hotmart</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
