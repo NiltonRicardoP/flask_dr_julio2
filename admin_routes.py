@@ -35,6 +35,7 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated or current_user.role != 'admin':
+            flash('Acesso restrito aos administradores', 'danger')
             return redirect(url_for('admin_bp.login'))
         return f(*args, **kwargs)
     return decorated_function

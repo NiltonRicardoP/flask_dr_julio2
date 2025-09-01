@@ -40,6 +40,7 @@ def register():
 
 
 @student_bp.route('/')
+@student_bp.route('/dashboard')
 @login_required
 def dashboard():
     if current_user.role != 'student':
