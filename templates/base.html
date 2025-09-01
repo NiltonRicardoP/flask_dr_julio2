@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ settings.site_title if settings and settings.site_title else 'Dr. Julio Vasconcelos' }} | {% block title %}{% endblock %}</title>
+    {# Determine the site title safely even when settings is missing #}
+    {% set site_title = settings.site_title if settings and settings.site_title else 'Dr. Julio Vasconcelos' %}
+    <title>{{ site_title }} | {% block title %}{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -17,9 +19,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('main_bp.index') }}">
-                {% if settings and settings.site_title %}{{ settings.site_title }}{% else %}Dr. Julio Vasconcelos{% endif %}
-            </a>
+            <a class="navbar-brand" href="{{ url_for('main_bp.index') }}">{{ site_title }}</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -78,7 +78,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-4">
-                    <h5>{{ settings.site_title if settings and settings.site_title else 'Dr. Julio Vasconcelos' }}</h5>
+                    <h5>{{ site_title }}</h5>
                     {# Ensure settings exists before rendering about_text #}
                     {% if settings and settings.about_text %}
                         <p>{{ settings.about_text | truncate(100) }}</p>
