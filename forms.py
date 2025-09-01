@@ -11,13 +11,6 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField('Lembrar de mim')
     submit = SubmitField('Entrar')
 
-
-class UserRegistrationForm(FlaskForm):
-    username = StringField('Usuário', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Senha', validators=[DataRequired()])
-    submit = SubmitField('Registrar')
-
 class AppointmentForm(FlaskForm):
     name = StringField('Nome Completo', validators=[DataRequired(), Length(min=3, max=100)])
     email = StringField('Email', validators=[DataRequired(), Email()])

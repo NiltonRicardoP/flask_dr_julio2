@@ -9,7 +9,6 @@ from models import (
     Invoice,
     Convenio,
     Course,
-    CourseEnrollment,
     ContactMessage,
 )
 from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm, CourseForm
@@ -21,7 +20,6 @@ from models import (
     Appointment,
     Settings,
     Course,
-    CourseEnrollment,
 )
 
 # Create Blueprint for the admin routes
@@ -53,7 +51,7 @@ def login():
     if current_user.is_authenticated:
         if current_user.role == 'admin':
             return redirect(url_for('admin_bp.dashboard'))
-        return redirect(url_for('student_bp.dashboard'))
+        return redirect(url_for('main_bp.index'))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -65,7 +63,9 @@ def login():
         login_user(user, remember=form.remember_me.data)
         if user.role == 'admin':
             return redirect(url_for('admin_bp.dashboard'))
-        return redirect(url_for('student_bp.dashboard'))
+        logout_user()
+        flash('Acesso restrito aos administradores', 'danger')
+        return redirect(url_for('admin_bp.login'))
 
     return render_template('admin/login.html', form=form)
 
@@ -453,13 +453,6 @@ def delete_course(id):
     db.session.commit()
     flash('Curso removido!', 'success')
     return redirect(url_for('admin_bp.courses'))
-
-
-@admin_bp.route('/enrollments')
-@admin_required
-def enrollments():
-    enrollments = CourseEnrollment.query.order_by(CourseEnrollment.created_at.desc()).all()
-    return render_template('admin/enrollments.html', enrollments=enrollments)
 
 
 @admin_bp.route('/messages')

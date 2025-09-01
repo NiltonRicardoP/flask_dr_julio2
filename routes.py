@@ -6,17 +6,11 @@ from flask import (
     flash,
     current_app,
     request,
-    send_from_directory,
-    abort,
 )
-from flask_login import login_required, current_user, login_user
 from datetime import datetime
 import hmac
 import hashlib
-import secrets
-import os
 import json
-from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from flask_mail import Message
 
 from forms import (
@@ -29,45 +23,11 @@ from models import (
     Appointment,
     Settings,
     Course,
-    CourseEnrollment,
     ContactMessage,
-    User,
 )
 
 # Create a Blueprint for the main routes
 main_bp = Blueprint("main_bp", __name__)
-
-
-def generate_media_token(path):
-    serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
-    return serializer.dumps(path)
-
-
-@main_bp.route("/media/<path:filename>")
-@login_required
-def media(filename):
-    token = request.args.get("token", "")
-    serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
-    try:
-        data = serializer.loads(token, max_age=3600)
-        if data != filename:
-            abort(403)
-    except (BadSignature, SignatureExpired):
-        abort(403)
-    course_id = filename.split("/")[0]
-    if current_user.role != "admin":
-        enrollment = CourseEnrollment.query.filter_by(
-            course_id=course_id, user_id=current_user.id
-        ).first()
-        now = datetime.utcnow()
-        if not enrollment or not (
-            enrollment.access_start
-            and enrollment.access_end
-            and enrollment.access_start <= now <= enrollment.access_end
-        ):
-            abort(403)
-    base_dir = current_app.config["COURSE_CONTENT_FOLDER"]
-    return send_from_directory(base_dir, filename)
 
 
 @main_bp.route("/")
@@ -193,36 +153,6 @@ def course_page(id):
     )
 
 
-@main_bp.route("/curso/acesso/<int:enrollment_id>")
-@login_required
-def course_access(enrollment_id):
-    enrollment = CourseEnrollment.query.get_or_404(enrollment_id)
-    if enrollment.user_id != current_user.id:
-        flash("Você não tem permissão para acessar este curso.", "danger")
-        return redirect(url_for("student_bp.dashboard"))
-    if enrollment.payment_status != "paid":
-        flash("Pagamento não identificado para esta inscrição.", "warning")
-        return redirect(url_for("main_bp.course_page", id=enrollment.course_id))
-    now = datetime.utcnow()
-    if not (
-        enrollment.access_start
-        and enrollment.access_end
-        and enrollment.access_start <= now <= enrollment.access_end
-    ):
-        flash("Seu acesso a este curso expirou ou ainda não foi liberado.", "warning")
-        return redirect(url_for("student_bp.dashboard"))
-    videos = []
-    content_folder = current_app.config["COURSE_CONTENT_FOLDER"]
-    course_folder = os.path.join(content_folder, str(enrollment.course_id))
-    if os.path.isdir(course_folder):
-        for fname in os.listdir(course_folder):
-            if fname.lower().endswith((".mp4", ".mov", ".avi", ".mkv", ".webm")):
-                path = f"{enrollment.course_id}/{fname}"
-                token = generate_media_token(path)
-                videos.append(url_for("main_bp.media", filename=path, token=token))
-    return render_template("course_access.html", enrollment=enrollment, videos=videos)
-
-
 @main_bp.route("/webhook/hotmart", methods=["POST"])
 def hotmart_webhook():
     """Handle Hotmart purchase notifications."""
@@ -276,59 +206,10 @@ def hotmart_webhook():
         current_app.logger.warning("Hotmart course %s not found", product_id)
         return "Course not found", 404
 
-    user = User.query.filter_by(email=email).first()
-    new_user = False
-    temp_password = None
-    if not user:
-        username = email.split("@")[0]
-        user = User(username=username, email=email, role="student")
-        temp_password = secrets.token_urlsafe(8)
-        user.set_password(temp_password)
-        db.session.add(user)
-        db.session.flush()
-        new_user = True
-        current_app.logger.info("Created user %s for transaction %s", user.id, txn_id)
-
-    enrollment = CourseEnrollment.query.filter_by(
-        course_id=course.id, user_id=user.id
-    ).first()
-    if not enrollment:
-        enrollment = CourseEnrollment(
-            course_id=course.id,
-            user_id=user.id,
-            name=user.username,
-            email=email,
-            payment_status="paid",
-            transaction_id=txn_id,
-        )
-        db.session.add(enrollment)
-        db.session.flush()
-        current_app.logger.info(
-            "Created enrollment %s for user %s", enrollment.id, user.id
-        )
-    else:
-        enrollment.payment_status = "paid"
-        enrollment.transaction_id = txn_id
-        current_app.logger.info(
-            "Updated enrollment %s for user %s", enrollment.id, user.id
-        )
-    if not enrollment.access_start:
-        enrollment.activate_access()
-
-    db.session.commit()
-
     mail = current_app.extensions.get("mail")
     if mail:
         try:
-            login_link = url_for("student_bp.login", _external=True)
             body = f'Você agora tem acesso ao curso {course.title}. Link: {course.access_url or ""}'
-            if new_user and temp_password:
-                body += (
-                    f"\n\nFaça login em {login_link} com o usuário {user.username} e a senha temporária {temp_password}. "
-                    "Altere sua senha após o primeiro acesso."
-                )
-            else:
-                body += f"\n\nAcesse {login_link} para entrar no curso."
             msg = Message(subject="Acesso ao curso", recipients=[email], body=body)
             mail.send(msg)
         except Exception:

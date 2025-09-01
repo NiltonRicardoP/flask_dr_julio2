@@ -1,6 +1,5 @@
-from flask import current_app
 from flask_login import UserMixin
-from datetime import datetime, timedelta
+from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db
 
@@ -170,30 +169,6 @@ class Course(db.Model):
             .order_by(cls.start_date.desc())
             .all()
         )
-
-
-class CourseEnrollment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), nullable=False)
-    phone = db.Column(db.String(20))
-    payment_status = db.Column(db.String(20), default='pending')
-    transaction_id = db.Column(db.String(100))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    access_start = db.Column(db.DateTime)
-    access_end = db.Column(db.DateTime)
-
-    course = db.relationship('Course', backref=db.backref('enrollments', lazy=True))
-    user = db.relationship('User', backref=db.backref('course_enrollments', lazy=True))
-
-    def activate_access(self, days=None):
-        """Start access period for this enrollment."""
-        now = datetime.utcnow()
-        duration = days or current_app.config.get('COURSE_ACCESS_DAYS', 365)
-        self.access_start = now
-        self.access_end = now + timedelta(days=duration)
 
 class CoursePurchase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
