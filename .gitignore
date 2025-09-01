@@ -16,6 +16,7 @@ build/
 # Banco de dados local
 *.sqlite3
 instance/*.db
+instance/*.db*
 
 # Configurações de IDEs
 .idea/
