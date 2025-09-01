@@ -73,16 +73,9 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-    """Run migrations in 'online' mode.
+    """Run migrations in 'online' mode."""
 
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
-    """
-
-    # this callback is used to prevent an auto-migration from being generated
-    # when there are no changes to the schema
-    # reference: http://alembic.zzzcomputing.com/en/latest/cookbook.html
+    # evita gerar migration vazia quando não há mudanças
     def process_revision_directives(context, revision, directives):
         if getattr(config.cmd_opts, 'autogenerate', False):
             script = directives[0]
@@ -93,18 +86,25 @@ def run_migrations_online():
     connectable = get_engine()
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=get_metadata(),
-            process_revision_directives=process_revision_directives,
-            **current_app.extensions['migrate'].configure_args
-        )
+        # comece a partir dos args do Flask-Migrate
+        args = dict(current_app.extensions['migrate'].configure_args)
+
+        # garanta esses args sem duplicar kwargs
+        args.update({
+            "connection": connection,
+            "target_metadata": get_metadata(),
+            "process_revision_directives": process_revision_directives,
+        })
+
+        # defaults úteis se não vierem dos configure_args
+        args.setdefault("compare_type", True)
+        args.setdefault("compare_server_default", True)
+
+        # SQLite: ativa batch mode p/ simular ALTER TABLE
+        if connection.dialect.name == "sqlite":
+            args["render_as_batch"] = True
+
+        context.configure(**args)
 
         with context.begin_transaction():
             context.run_migrations()
-
-
-if context.is_offline_mode():
-    run_migrations_offline()
-else:
-    run_migrations_online()
