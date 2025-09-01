@@ -10,6 +10,7 @@ from extensions import db  # Correto: db importado do extensions.py
 from models import User, Settings
 from routes import main_bp
 from admin_routes import admin_bp
+from student_routes import student_bp
 
 # Create Flask application
 app = Flask(__name__)
@@ -25,6 +26,7 @@ mail = Mail(app)
 # Register blueprints
 app.register_blueprint(main_bp)
 app.register_blueprint(admin_bp, url_prefix='/admin')
+app.register_blueprint(student_bp)
 
 # Flask-Login: Carregador de usuário
 @login_manager.user_loader
