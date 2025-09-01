@@ -185,7 +185,7 @@ def cursos():
 
 @main_bp.route("/courses/<int:id>")
 def course_page(id):
-    """Show course details with a link to register."""
+    """Show course details with a link to purchase."""
     course = Course.query.get_or_404(id)
     settings = Settings.query.first()
     return render_template(
