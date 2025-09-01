@@ -15,7 +15,9 @@
             <div class="card bg-dark-blue shadow border-0">
                 <div class="card-body">
                     <p class="text-light mb-2">Valor: R$ {{ '%.2f'|format(course.price) }}</p>
-                    <a href="{{ url_for('main_bp.register_course', id=course.id) }}" class="btn btn-primary w-100">Inscrever-se</a>
+                    {% if course.purchase_link %}
+                    <a href="{{ course.purchase_link }}" class="btn btn-primary w-100" target="_blank">Comprar Curso</a>
+                    {% endif %}
                 </div>
             </div>
         </div>

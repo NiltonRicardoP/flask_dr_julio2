@@ -10,8 +10,6 @@ from models import (
     Convenio,
     Course,
     CourseEnrollment,
-    CourseRegistration,
-    Payment,
     ContactMessage,
 )
 from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm, CourseForm
@@ -24,7 +22,6 @@ from models import (
     Settings,
     Course,
     CourseEnrollment,
-    CourseRegistration,
 )
 
 # Create Blueprint for the admin routes
@@ -463,13 +460,6 @@ def delete_course(id):
 def enrollments():
     enrollments = CourseEnrollment.query.order_by(CourseEnrollment.created_at.desc()).all()
     return render_template('admin/enrollments.html', enrollments=enrollments)
-
-
-@admin_bp.route('/registrations')
-@admin_required
-def registrations():
-    regs = CourseRegistration.query.order_by(CourseRegistration.created_at.desc()).all()
-    return render_template('admin/registrations.html', registrations=regs)
 
 
 @admin_bp.route('/messages')
