@@ -5,6 +5,16 @@ from models import User, CourseEnrollment
 from extensions import db
 
 student_bp = Blueprint('student_bp', __name__)
+
+
+@student_bp.context_processor
+def inject_settings():
+    from models import Settings
+    from datetime import datetime
+
+    s = Settings.query.first()
+    return dict(settings=s or {}, current_year=datetime.now().year)
+
 @student_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
