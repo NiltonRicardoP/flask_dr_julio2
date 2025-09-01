@@ -65,9 +65,9 @@ Crie uma nova aplicação para obter o Client ID e o Client Secret e então defi
 
 ## Cursos
 
-Os cursos disponíveis são exibidos na página `/cursos` (ou `/courses` em inglês).
-Cada curso tem uma página de detalhes onde o visitante pode se inscrever informando nome, e‑mail e
-telefone. Após o envio, a inscrição é registrada no banco de dados.
+Os cursos disponíveis são exibidos na página `/cursos` (ou `/courses`).
+Cada curso apresenta um link de compra ou acesso via Hotmart, onde todo o conteúdo é hospedado e gerenciado.
+Não há área do aluno ou registro de matrículas neste projeto; o acesso é feito exclusivamente pela plataforma Hotmart.
 
 Para visualizar a lista de cursos basta iniciar a aplicação e acessar:
 
@@ -79,20 +79,10 @@ descrição, imagem, preço, link de acesso e se o curso está ativo.
 
 ### Administração de cursos
 
-No painel administrativo existem opções para **Cursos** e **Inscrições**.
+No painel administrativo existe a opção **Cursos**.
 Para cadastrar um novo curso acesse `/admin/courses` e clique em **Adicionar**
 ou vá diretamente para `/admin/courses/add`. Preencha os campos do formulário e
 salve. Para editar um curso existente utilize `/admin/courses/edit/<id>` a
 partir da lista. A exclusão pode ser feita enviando um POST para
 `/admin/courses/delete/<id>`.
-
-### Upload de vídeos do curso
-
-Os materiais em vídeo devem ser enviados pelo painel administrativo ao editar ou criar um curso. Cada arquivo é armazenado na pasta `course_content/<id_do_curso>` e fica disponível apenas para alunos matriculados.
-
-1. Acesse **Admin > Cursos** e escolha **Adicionar** ou **Editar**.
-2. Utilize o campo **Vídeo** para selecionar o arquivo desejado e salve o formulário.
-3. O vídeo poderá ser reproduzido pelos alunos na página do curso através de um `<video>` protegido por token temporário.
-
-Caso prefira hospedar os vídeos em serviços externos (como S3/CloudFront ou Vimeo), basta preencher o campo **URL de Acesso** do curso com o link correspondente.
 
