@@ -18,7 +18,7 @@
                         <p class="text-light">Valor: R$ {{ '%.2f'|format(course.price) }}</p>
                         <p class="card-text">{{ course.description|truncate(150) }}</p>
                         {% if course.purchase_link %}
-                        <a href="{{ course.purchase_link }}" class="btn btn-consult" target="_blank">Comprar na Hotmart</a>
+                        <a href="{{ course.purchase_link }}" class="btn btn-consult" target="_blank" rel="noopener">Comprar na Hotmart</a>
                         {% endif %}
                     </div>
                 </div>

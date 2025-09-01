@@ -22,7 +22,7 @@
                             <i class="fas fa-money-bill-wave me-2"></i> R$ {{ '%.2f'|format(course.price) }}
                         </p>
                         {% if course.purchase_link %}
-                        <a href="{{ course.purchase_link }}" class="btn btn-primary" target="_blank">Comprar na Hotmart</a>
+                        <a href="{{ course.purchase_link }}" class="btn btn-primary" target="_blank" rel="noopener">Comprar na Hotmart</a>
                         {% endif %}
                     </div>
                 </div>

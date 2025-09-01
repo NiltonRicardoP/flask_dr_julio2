@@ -153,6 +153,15 @@ def course_page(id):
     )
 
 
+@main_bp.route("/courses/<int:id>/register")
+def course_register(id):
+    """Redirect legacy register route to external purchase link."""
+    course = Course.query.get_or_404(id)
+    if course.purchase_link:
+        return redirect(course.purchase_link)
+    return redirect(url_for("main_bp.course_page", id=id))
+
+
 @main_bp.route("/webhook/hotmart", methods=["POST"])
 def hotmart_webhook():
     """Handle Hotmart purchase notifications."""
