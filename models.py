@@ -9,6 +9,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
+    role = db.Column(db.String(20), default='student', nullable=False)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -136,6 +137,9 @@ class Course(db.Model):
     image = db.Column(db.String(255))
     price = db.Column(db.Float, default=0.0)
     access_url = db.Column(db.String(255))
+    purchase_link = db.Column(db.String(255))
+    start_date = db.Column(db.DateTime, nullable=True)
+    end_date = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -144,52 +148,27 @@ class Course(db.Model):
 
     @classmethod
     def get_upcoming_courses(cls):
-        """Return active courses starting today or later if start_date exists."""
-        query = cls.query.filter(cls.is_active == True)
-        if hasattr(cls, "start_date"):
-            query = query.filter(cls.start_date >= datetime.utcnow())
-            order_field = cls.start_date
-        else:
-            order_field = cls.created_at
-        return query.order_by(order_field).all()
+        """Return active courses starting today or later."""
+        return (
+            cls.query.filter(
+                cls.is_active == True,
+                cls.start_date >= datetime.utcnow(),
+            )
+            .order_by(cls.start_date)
+            .all()
+        )
 
     @classmethod
     def get_past_courses(cls):
-        """Return active courses that have ended when date fields exist."""
-        if not hasattr(cls, "end_date"):
-            return []
-        query = cls.query.filter(
-            cls.end_date < datetime.utcnow(), cls.is_active == True
+        """Return active courses that have ended."""
+        return (
+            cls.query.filter(
+                cls.is_active == True,
+                cls.end_date < datetime.utcnow(),
+            )
+            .order_by(cls.start_date.desc())
+            .all()
         )
-        order_field = getattr(cls, "start_date", cls.created_at).desc()
-        return query.order_by(order_field).all()
-
-
-class CourseEnrollment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), nullable=False)
-    phone = db.Column(db.String(20))
-    payment_status = db.Column(db.String(20), default='pending')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    course = db.relationship('Course', backref=db.backref('enrollments', lazy=True))
-
-
-class PaymentTransaction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    enrollment_id = db.Column(db.Integer, db.ForeignKey('course_enrollment.id'), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    provider_id = db.Column(db.String(100))
-    status = db.Column(db.String(20), default='paid')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    enrollment = db.relationship('CourseEnrollment', backref=db.backref('transactions', lazy=True))
-
-    def __repr__(self):
-        return f'<PaymentTransaction {self.id}>'
-
 
 class CoursePurchase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -205,35 +184,18 @@ class CoursePurchase(db.Model):
         return f'<CoursePurchase {self.id}>'
 
 
-class CourseRegistration(db.Model):
-    """Registro público de interesse em cursos."""
+class CourseEnrollment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    participant_name = db.Column(db.String(100), nullable=False)
-    participant_email = db.Column(db.String(100), nullable=False)
-    payment_status = db.Column(db.String(20), default='pending')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    course = db.relationship('Course', backref=db.backref('registrations', lazy=True))
-
-    def __repr__(self):
-        return f'<CourseRegistration {self.id}>'
-
-
-class Payment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    registration_id = db.Column(db.Integer, db.ForeignKey('course_registration.id'), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    provider = db.Column(db.String(50))
-    status = db.Column(db.String(20), default='pending')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     transaction_id = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    registration = db.relationship('CourseRegistration', backref=db.backref('payments', lazy=True))
+    course = db.relationship('Course', backref=db.backref('enrollments', lazy=True))
+    user = db.relationship('User', backref=db.backref('enrollments', lazy=True))
 
     def __repr__(self):
-        return f'<Payment {self.id}>'
-
+        return f'<CourseEnrollment {self.id}>'
 
 class Convenio(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -1,6 +1,6 @@
-from flask import url_for
-from models import Course, CourseEnrollment
+from models import Course
 from extensions import db
+from datetime import datetime, timedelta
 
 
 def create_course(**kwargs):
@@ -31,17 +31,60 @@ def test_courses_route_english_alias(client):
     assert 'Active EN' in html
 
 
-def test_course_detail_post_creates_enrollment(client):
+
+def test_course_page_shows_course_info(client):
     with client.application.app_context():
-        course = create_course(title='Course', description='desc', price=10, is_active=True)
-        url = f'/cursos/{course.id}'
-    data = {'name': 'Test User', 'email': 'test@example.com', 'phone': '12345678'}
-    resp = client.post(url, data=data, follow_redirects=False)
+        course = create_course(
+            title='Course',
+            description='desc',
+            price=10,
+            is_active=True,
+            purchase_link='http://example.com/buy'
+        )
+        url = f'/courses/{course.id}'
+    resp = client.get(url)
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+    assert 'Course' in html
+    assert 'http://example.com/buy' in html
+
+
+def test_course_register_redirects_to_purchase_link(client):
+    with client.application.app_context():
+        course = create_course(
+            title='Link Course',
+            description='desc',
+            price=10,
+            is_active=True,
+            purchase_link='http://example.com/register'
+        )
+        url = f'/courses/{course.id}/register'
+    resp = client.get(url, follow_redirects=False)
     assert resp.status_code == 302
+    assert resp.headers['Location'] == 'http://example.com/register'
+
+
+def test_active_courses_order_by_start_date(client):
+    """Upcoming courses should be ordered by start_date."""
     with client.application.app_context():
-        enrollment = CourseEnrollment.query.first()
-        assert enrollment is not None
-        assert enrollment.name == 'Test User'
-        assert enrollment.email == 'test@example.com'
-        assert enrollment.course_id == course.id
-        assert resp.headers['Location'].endswith(f'/pagamento/{enrollment.id}')
+        now = datetime.utcnow()
+        create_course(
+            title='Sooner',
+            description='desc',
+            price=10,
+            is_active=True,
+            start_date=now + timedelta(days=1),
+            end_date=now + timedelta(days=2),
+        )
+        create_course(
+            title='Later',
+            description='desc',
+            price=10,
+            is_active=True,
+            start_date=now + timedelta(days=3),
+            end_date=now + timedelta(days=4),
+        )
+    resp = client.get('/active-courses')
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+    assert html.index('Sooner') < html.index('Later')

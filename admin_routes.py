@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, current_app
-from flask_login import login_user, logout_user, login_required, current_user
+from flask_login import login_user, logout_user, current_user
+from functools import wraps
 from werkzeug.utils import secure_filename
 import os
 from models import (
@@ -8,9 +9,6 @@ from models import (
     Invoice,
     Convenio,
     Course,
-    CourseEnrollment,
-    CourseRegistration,
-    Payment,
     ContactMessage,
 )
 from forms import GalleryForm, BillingRecordForm, InvoiceForm, ConvenioForm, CourseForm
@@ -22,28 +20,42 @@ from models import (
     Appointment,
     Settings,
     Course,
-    CourseEnrollment,
-    CourseRegistration,
 )
 
 # Create Blueprint for the admin routes
 admin_bp = Blueprint('admin_bp', __name__)
 
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role != 'admin':
+            flash('Acesso restrito aos administradores', 'danger')
+            return redirect(url_for('admin_bp.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('admin_bp.dashboard'))
-    
+        if current_user.role == 'admin':
+            return redirect(url_for('admin_bp.dashboard'))
+        return redirect(url_for('main_bp.index'))
+
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash('Usuário ou senha inválidos', 'danger')
             return redirect(url_for('admin_bp.login'))
-            
+
         login_user(user, remember=form.remember_me.data)
-        return redirect(url_for('admin_bp.dashboard'))
-        
+        if user.role == 'admin':
+            return redirect(url_for('admin_bp.dashboard'))
+        logout_user()
+        flash('Acesso restrito aos administradores', 'danger')
+        return redirect(url_for('admin_bp.login'))
+
     return render_template('admin/login.html', form=form)
 
 @admin_bp.route('/logout')
@@ -52,7 +64,7 @@ def logout():
     return redirect(url_for('main_bp.index'))
 
 @admin_bp.route('/')
-@login_required
+@admin_required
 def dashboard():
     # Get recent appointments
     appointments = Appointment.query.order_by(Appointment.created_at.desc()).limit(5).all()
@@ -70,13 +82,13 @@ def dashboard():
                           recent_contacts=recent_contacts)
 
 @admin_bp.route('/appointments')
-@login_required
+@admin_required
 def appointments():
     appointments = Appointment.query.order_by(Appointment.date.desc()).all()
     return render_template('admin/appointments.html', appointments=appointments)
 
 @admin_bp.route('/appointment/<int:id>/status/<status>')
-@login_required
+@admin_required
 def update_appointment_status(id, status):
     appointment = Appointment.query.get_or_404(id)
     
@@ -90,13 +102,13 @@ def update_appointment_status(id, status):
     return redirect(url_for('admin_bp.appointments'))
 
 @admin_bp.route('/events')
-@login_required
+@admin_required
 def events():
     events = Event.query.order_by(Event.start_date.desc()).all()
     return render_template('admin/events.html', events=events)
 
 @admin_bp.route('/events/add', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def add_event():
     form = EventForm()
     
@@ -124,7 +136,7 @@ def add_event():
     return render_template('admin/event_form.html', form=form, title='Adicionar Evento')
 
 @admin_bp.route('/events/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def edit_event(id):
     event = Event.query.get_or_404(id)
     form = EventForm(obj=event)
@@ -156,7 +168,7 @@ def edit_event(id):
     return render_template('admin/event_form.html', form=form, title='Editar Evento')
 
 @admin_bp.route('/settings', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def settings():
     settings = Settings.query.first()
     if not settings:
@@ -183,7 +195,7 @@ def settings():
     return render_template('admin/settings.html', form=form, settings=settings)
 
 @admin_bp.route('/gallery', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def gallery():
     form = GalleryForm()
     items = GalleryItem.query.order_by(GalleryItem.created_at.desc()).all()
@@ -213,7 +225,7 @@ def gallery():
 
 
 @admin_bp.route('/gallery/delete/<int:item_id>', methods=['POST'])
-@login_required
+@admin_required
 def delete_gallery_item(item_id):
     item = GalleryItem.query.get_or_404(item_id)
     gallery_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'gallery')
@@ -232,14 +244,14 @@ def delete_gallery_item(item_id):
 
 
 @admin_bp.route('/billings')
-@login_required
+@admin_required
 def billings():
     records = BillingRecord.query.order_by(BillingRecord.created_at.desc()).all()
     return render_template('admin/billings.html', records=records)
 
 
 @admin_bp.route('/billings/add', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def add_billing():
     form = BillingRecordForm()
     if form.validate_on_submit():
@@ -257,7 +269,7 @@ def add_billing():
 
 
 @admin_bp.route('/billings/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def edit_billing(id):
     record = BillingRecord.query.get_or_404(id)
     form = BillingRecordForm(obj=record)
@@ -273,14 +285,14 @@ def edit_billing(id):
 
 
 @admin_bp.route('/invoices')
-@login_required
+@admin_required
 def invoices():
     invoices = Invoice.query.order_by(Invoice.created_at.desc()).all()
     return render_template('admin/invoices.html', invoices=invoices)
 
 
 @admin_bp.route('/invoices/add', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def add_invoice():
     form = InvoiceForm()
     if form.validate_on_submit():
@@ -298,7 +310,7 @@ def add_invoice():
 
 
 @admin_bp.route('/invoices/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def edit_invoice(id):
     invoice = Invoice.query.get_or_404(id)
     form = InvoiceForm(obj=invoice)
@@ -314,14 +326,14 @@ def edit_invoice(id):
 
 
 @admin_bp.route('/convenios')
-@login_required
+@admin_required
 def convenios():
     convenios = Convenio.query.order_by(Convenio.created_at.desc()).all()
     return render_template('admin/convenios.html', convenios=convenios)
 
 
 @admin_bp.route('/convenios/add', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def add_convenio():
     form = ConvenioForm()
     if form.validate_on_submit():
@@ -338,7 +350,7 @@ def add_convenio():
 
 
 @admin_bp.route('/convenios/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def edit_convenio(id):
     convenio = Convenio.query.get_or_404(id)
     form = ConvenioForm(obj=convenio)
@@ -353,14 +365,14 @@ def edit_convenio(id):
 
 
 @admin_bp.route('/courses')
-@login_required
+@admin_required
 def courses():
     courses = Course.query.order_by(Course.created_at.desc()).all()
     return render_template('admin/courses.html', courses=courses)
 
 
 @admin_bp.route('/courses/add', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def add_course():
     form = CourseForm()
     if form.validate_on_submit():
@@ -375,6 +387,7 @@ def add_course():
             description=form.description.data,
             price=form.price.data,
             access_url=form.access_url.data,
+            purchase_link=form.purchase_link.data,
             image=filename,
             is_active=form.is_active.data
         )
@@ -386,7 +399,7 @@ def add_course():
 
 
 @admin_bp.route('/courses/edit/<int:id>', methods=['GET', 'POST'])
-@login_required
+@admin_required
 def edit_course(id):
     course = Course.query.get_or_404(id)
     form = CourseForm(obj=course)
@@ -395,6 +408,7 @@ def edit_course(id):
         course.description = form.description.data
         course.price = form.price.data
         course.access_url = form.access_url.data
+        course.purchase_link = form.purchase_link.data
         course.is_active = form.is_active.data
         if form.image.data:
             if course.image:
@@ -414,7 +428,7 @@ def edit_course(id):
 
 
 @admin_bp.route('/courses/delete/<int:id>', methods=['POST'])
-@login_required
+@admin_required
 def delete_course(id):
     course = Course.query.get_or_404(id)
     if course.image:
@@ -428,29 +442,15 @@ def delete_course(id):
     return redirect(url_for('admin_bp.courses'))
 
 
-@admin_bp.route('/enrollments')
-@login_required
-def enrollments():
-    enrollments = CourseEnrollment.query.order_by(CourseEnrollment.created_at.desc()).all()
-    return render_template('admin/enrollments.html', enrollments=enrollments)
-
-
-@admin_bp.route('/registrations')
-@login_required
-def registrations():
-    regs = CourseRegistration.query.order_by(CourseRegistration.created_at.desc()).all()
-    return render_template('admin/registrations.html', registrations=regs)
-
-
 @admin_bp.route('/messages')
-@login_required
+@admin_required
 def messages():
     messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).all()
     return render_template('admin/messages.html', messages=messages)
 
 
 @admin_bp.route('/messages/<int:id>/delete', methods=['POST'])
-@login_required
+@admin_required
 def delete_message(id):
     message = ContactMessage.query.get_or_404(id)
     db.session.delete(message)

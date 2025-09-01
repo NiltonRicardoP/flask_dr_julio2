@@ -51,6 +51,17 @@
                 {% endif %}
             </div>
             <div class="mb-3">
+                {{ form.purchase_link.label(class="form-label") }}
+                {{ form.purchase_link(class="form-control") }}
+                {% if form.purchase_link.errors %}
+                    <div class="text-danger">
+                        {% for error in form.purchase_link.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="mb-3">
                 {{ form.image.label(class="form-label") }}
                 {{ form.image(class="form-control") }}
                 {% if form.image.errors %}

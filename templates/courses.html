@@ -47,7 +47,9 @@
                             <div>{{ course.description|safe }}</div>
                         </div>
                         <div class="modal-footer" style="border-top-color:#2d3748;">
-                            <a href="{{ url_for('main_bp.course_page', id=course.id) }}" class="btn btn-primary">Inscrever-se</a>
+                            {% if course.purchase_link %}
+                            <a href="{{ course.purchase_link }}" class="btn btn-primary" target="_blank" rel="noopener">Comprar na Hotmart</a>
+                            {% endif %}
                             <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Fechar</button>
                         </div>
                     </div>

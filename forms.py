@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, TextAreaField, DateField, TimeField, BooleanField, SubmitField, FloatField
-from wtforms.validators import DataRequired, Email, ValidationError, Length, Optional, NumberRange
+from wtforms.validators import DataRequired, Email, ValidationError, Length, Optional, NumberRange, URL
 from datetime import date
 from wtforms import SelectField
 
@@ -112,30 +112,7 @@ class CourseForm(FlaskForm):
     image = FileField('Imagem', validators=[FileAllowed(['jpg', 'jpeg', 'png'], 'Apenas imagens são permitidas!')])
     price = FloatField('Preço', validators=[DataRequired(), NumberRange(min=0)])
     access_url = StringField('URL de Acesso', validators=[Optional()])
+    purchase_link = StringField('Link do curso', validators=[Optional(), URL()])
     is_active = BooleanField('Curso Ativo', default=True)
     submit = SubmitField('Salvar')
-
-
-class CourseEnrollmentForm(FlaskForm):
-    name = StringField('Nome', validators=[DataRequired(), Length(min=3, max=100)])
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    phone = StringField('Telefone', validators=[DataRequired(), Length(min=8, max=20)])
-    submit = SubmitField('Enviar Inscrição')
-
-
-class ConfirmPaymentForm(FlaskForm):
-    submit = SubmitField('Confirmar Pagamento')
-
-
-class RegistrationForm(FlaskForm):
-    """Simple form to register interest in a course."""
-    name = StringField('Nome', validators=[DataRequired(), Length(min=3, max=100)])
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    submit = SubmitField('Inscreva-se')
-
-
-class CourseRegistrationForm(FlaskForm):
-    participant_name = StringField('Nome', validators=[DataRequired(), Length(min=3, max=100)])
-    participant_email = StringField('Email', validators=[DataRequired(), Email()])
-    submit = SubmitField('Inscrever-se')
 

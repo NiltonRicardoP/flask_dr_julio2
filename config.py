@@ -27,3 +27,13 @@ class Config:
     # Stripe configuration
     STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
     STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
+    STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+
+    # Hotmart configuration
+    HOTMART_WEBHOOK_SECRET = os.environ.get('HOTMART_WEBHOOK_SECRET', '')
+    HOTMART_CLIENT_ID = os.environ.get('HOTMART_CLIENT_ID', '')
+    HOTMART_CLIENT_SECRET = os.environ.get('HOTMART_CLIENT_SECRET', '')
+    HOTMART_USE_SANDBOX = os.environ.get('HOTMART_USE_SANDBOX', 'false').lower() in ['true', 'on', '1']
+
+    # Default number of days a student can access a course after payment
+    COURSE_ACCESS_DAYS = int(os.environ.get('COURSE_ACCESS_DAYS', 365))
