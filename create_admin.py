@@ -1,7 +1,11 @@
 from app import app
 from models import db, User
+from flask_migrate import upgrade
 
 with app.app_context():
+    # Ensure the database schema is up to date using migrations
+    upgrade()
+
     admin = User.query.filter_by(username="admin").first()
     if not admin:
         admin = User(username="admin", email="admin@drjulio.com")
