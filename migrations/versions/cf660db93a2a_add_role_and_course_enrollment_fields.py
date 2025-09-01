@@ -1,7 +1,7 @@
 """add role and course enrollment fields
 
 Revision ID: cf660db93a2a
-Revises: 661c59b61f1c
+Revises: d87de128377f
 Create Date: 2025-09-01 01:15:22.676908
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'cf660db93a2a'
-down_revision = '661c59b61f1c'
+down_revision = 'd87de128377f'
 branch_labels = None
 depends_on = None
 
