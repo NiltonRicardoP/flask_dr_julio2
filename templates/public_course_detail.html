@@ -16,7 +16,7 @@
                 <div class="card-body">
                     <p class="text-light mb-2">Valor: R$ {{ '%.2f'|format(course.price) }}</p>
                     {% if course.purchase_link %}
-                    <a href="{{ course.purchase_link }}" class="btn btn-primary w-100" target="_blank">Comprar na Hotmart</a>
+                    <a href="{{ course.purchase_link }}" class="btn btn-primary w-100" target="_blank" rel="noopener">Comprar na Hotmart</a>
                     {% endif %}
                 </div>
             </div>

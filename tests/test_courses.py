@@ -34,12 +34,34 @@ def test_courses_route_english_alias(client):
 
 def test_course_page_shows_course_info(client):
     with client.application.app_context():
-        course = create_course(title='Course', description='desc', price=10, is_active=True)
+        course = create_course(
+            title='Course',
+            description='desc',
+            price=10,
+            is_active=True,
+            purchase_link='http://example.com/buy'
+        )
         url = f'/courses/{course.id}'
     resp = client.get(url)
     assert resp.status_code == 200
     html = resp.get_data(as_text=True)
     assert 'Course' in html
+    assert 'http://example.com/buy' in html
+
+
+def test_course_register_redirects_to_purchase_link(client):
+    with client.application.app_context():
+        course = create_course(
+            title='Link Course',
+            description='desc',
+            price=10,
+            is_active=True,
+            purchase_link='http://example.com/register'
+        )
+        url = f'/courses/{course.id}/register'
+    resp = client.get(url, follow_redirects=False)
+    assert resp.status_code == 302
+    assert resp.headers['Location'] == 'http://example.com/register'
 
 
 def test_active_courses_order_by_start_date(client):
