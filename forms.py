@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, TextAreaField, DateField, TimeField, BooleanField, SubmitField, FloatField
-from wtforms.validators import DataRequired, Email, ValidationError, Length, Optional, NumberRange
+from wtforms.validators import DataRequired, Email, ValidationError, Length, Optional, NumberRange, URL
 from datetime import date
 from wtforms import SelectField
 
@@ -120,6 +120,7 @@ class CourseForm(FlaskForm):
     video = FileField('Vídeo', validators=[FileAllowed(['mp4', 'mov', 'avi', 'mkv', 'webm'], 'Apenas vídeos são permitidos!'), Optional()])
     price = FloatField('Preço', validators=[DataRequired(), NumberRange(min=0)])
     access_url = StringField('URL de Acesso', validators=[Optional()])
+    purchase_link = StringField('Link do curso', validators=[Optional(), URL()])
     is_active = BooleanField('Curso Ativo', default=True)
     submit = SubmitField('Salvar')
 

@@ -401,6 +401,7 @@ def add_course():
             description=form.description.data,
             price=form.price.data,
             access_url=form.access_url.data,
+            purchase_link=form.purchase_link.data,
             image=filename,
             is_active=form.is_active.data
         )
@@ -422,6 +423,7 @@ def edit_course(id):
         course.description = form.description.data
         course.price = form.price.data
         course.access_url = form.access_url.data
+        course.purchase_link = form.purchase_link.data
         course.is_active = form.is_active.data
         if form.image.data:
             if course.image:

@@ -138,6 +138,7 @@ class Course(db.Model):
     image = db.Column(db.String(255))
     price = db.Column(db.Float, default=0.0)
     access_url = db.Column(db.String(255))
+    purchase_link = db.Column(db.String(255))
     start_date = db.Column(db.DateTime, nullable=True)
     end_date = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
