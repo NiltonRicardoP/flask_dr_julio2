@@ -195,21 +195,6 @@ class CourseEnrollment(db.Model):
         self.access_start = now
         self.access_end = now + timedelta(days=duration)
 
-
-class PaymentTransaction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    enrollment_id = db.Column(db.Integer, db.ForeignKey('course_enrollment.id'), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    provider_id = db.Column(db.String(100))
-    status = db.Column(db.String(20), default='paid')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    enrollment = db.relationship('CourseEnrollment', backref=db.backref('transactions', lazy=True))
-
-    def __repr__(self):
-        return f'<PaymentTransaction {self.id}>'
-
-
 class CoursePurchase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
@@ -222,37 +207,6 @@ class CoursePurchase(db.Model):
 
     def __repr__(self):
         return f'<CoursePurchase {self.id}>'
-
-
-class CourseRegistration(db.Model):
-    """Registro público de interesse em cursos."""
-    id = db.Column(db.Integer, primary_key=True)
-    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    participant_name = db.Column(db.String(100), nullable=False)
-    participant_email = db.Column(db.String(100), nullable=False)
-    payment_status = db.Column(db.String(20), default='pending')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    course = db.relationship('Course', backref=db.backref('registrations', lazy=True))
-
-    def __repr__(self):
-        return f'<CourseRegistration {self.id}>'
-
-
-class Payment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    registration_id = db.Column(db.Integer, db.ForeignKey('course_registration.id'), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    provider = db.Column(db.String(50))
-    status = db.Column(db.String(20), default='pending')
-    transaction_id = db.Column(db.String(100))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    registration = db.relationship('CourseRegistration', backref=db.backref('payments', lazy=True))
-
-    def __repr__(self):
-        return f'<Payment {self.id}>'
-
 
 class Convenio(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -124,12 +124,3 @@ class CourseForm(FlaskForm):
     is_active = BooleanField('Curso Ativo', default=True)
     submit = SubmitField('Salvar')
 
-class ConfirmPaymentForm(FlaskForm):
-    submit = SubmitField('Confirmar Pagamento')
-
-
-class CourseRegistrationForm(FlaskForm):
-    participant_name = StringField('Nome', validators=[DataRequired(), Length(min=3, max=100)])
-    participant_email = StringField('Email', validators=[DataRequired(), Email()])
-    submit = SubmitField('Inscrever-se')
-

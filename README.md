@@ -86,17 +86,6 @@ salve. Para editar um curso existente utilize `/admin/courses/edit/<id>` a
 partir da lista. A exclusão pode ser feita enviando um POST para
 `/admin/courses/delete/<id>`.
 
-### Pagamentos
-
-Após se inscrever em um curso o usuário é direcionado para uma página de pagamento.
-O processo é simulado e, quando confirmado, o status da inscrição muda para **paid**
-e é criado um registro em `PaymentTransaction`. Em seguida é apresentado o link de
-acesso ao material configurado para o curso.
-
-Também é possível comprar o curso diretamente via Stripe no endpoint `/course/<id>/buy`.
-Para isso defina `STRIPE_SECRET_KEY` e `STRIPE_PUBLIC_KEY` no arquivo `.env`.
-As compras realizadas por esse fluxo são registradas no modelo `CoursePurchase`.
-
 ### Upload de vídeos do curso
 
 Os materiais em vídeo devem ser enviados pelo painel administrativo ao editar ou criar um curso. Cada arquivo é armazenado na pasta `course_content/<id_do_curso>` e fica disponível apenas para alunos matriculados.
