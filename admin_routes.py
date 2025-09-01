@@ -35,17 +35,6 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
-def _save_course_video(course_id, file_storage):
-    if not file_storage:
-        return
-    filename = secure_filename(file_storage.filename)
-    content_folder = current_app.config['COURSE_CONTENT_FOLDER']
-    course_folder = os.path.join(content_folder, str(course_id))
-    os.makedirs(course_folder, exist_ok=True)
-    file_storage.save(os.path.join(course_folder, filename))
-
-
 @admin_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -404,7 +393,6 @@ def add_course():
         )
         db.session.add(course)
         db.session.commit()
-        _save_course_video(course.id, form.video.data)
         flash('Curso adicionado!', 'success')
         return redirect(url_for('admin_bp.courses'))
     return render_template('admin/course_form.html', form=form, title='Novo Curso')
@@ -434,7 +422,6 @@ def edit_course(id):
             form.image.data.save(os.path.join(course_folder, filename))
             course.image = filename
         db.session.commit()
-        _save_course_video(course.id, form.video.data)
         flash('Curso atualizado!', 'success')
         return redirect(url_for('admin_bp.courses'))
     return render_template('admin/course_form.html', form=form, title='Editar Curso', course=course)
