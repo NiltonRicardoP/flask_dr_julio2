@@ -183,6 +183,20 @@ class CoursePurchase(db.Model):
     def __repr__(self):
         return f'<CoursePurchase {self.id}>'
 
+
+class CourseEnrollment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    transaction_id = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    course = db.relationship('Course', backref=db.backref('enrollments', lazy=True))
+    user = db.relationship('User', backref=db.backref('enrollments', lazy=True))
+
+    def __repr__(self):
+        return f'<CourseEnrollment {self.id}>'
+
 class Convenio(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
