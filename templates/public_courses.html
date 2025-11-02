@@ -3,33 +3,65 @@
 {% block body_class %}dark-theme{% endblock %}
 {% block content %}
 <div class="container py-5 mt-5">
-    <h1 class="text-center section-title">Cursos</h1>
-    <div class="row">
-        {% for course in courses %}
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow" style="background-color:#1e293b;border:none;">
-                    {% if course.image %}
-                        <img src="{{ url_for('static', filename='uploads/courses/' + course.image) }}" class="card-img-top" alt="{{ course.title }}">
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ course.title }}</h5>
-                        {% if course.start_date %}
-                        <p class="text-light mb-1">
-                            <i class="far fa-calendar-alt me-2"></i> {{ course.start_date.strftime('%d/%m/%Y') }}
-                        </p>
-                        {% endif %}
-                        <p class="text-light">
-                            <i class="fas fa-money-bill-wave me-2"></i> R$ {{ '%.2f'|format(course.price) }}
-                        </p>
-                        {% if course.purchase_link %}
-                        <a href="{{ course.purchase_link }}" class="btn btn-primary" target="_blank" rel="noopener">Comprar na Hotmart</a>
-                        {% endif %}
-                    </div>
-                </div>
+  <h1 class="text-center section-title">Cursos</h1>
+
+  <!-- Grid responsivo com espaçamento consistente -->
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+    {% for course in courses %}
+      <div class="col d-flex">
+        <div class="card course-card shadow w-100 d-flex flex-column">
+          {% if course.image %}
+            <div class="course-image-wrapper">
+              <img
+                src="{{ url_for('static', filename='uploads/courses/' + course.image) }}"
+                alt="{{ course.title }}"
+                class="course-image"
+                loading="lazy"
+              >
             </div>
-        {% else %}
-            <p class="text-center">Nenhum curso ativo disponível.</p>
-        {% endfor %}
-    </div>
+          {% else %}
+            <!-- Placeholder quando não houver imagem -->
+            <div class="course-image-wrapper placeholder">
+              <div class="course-image-placeholder">Sem imagem</div>
+            </div>
+          {% endif %}
+
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title course-title">{{ course.title }}</h5>
+
+            {% if course.start_date %}
+              <p class="text-light mb-1">
+                <i class="far fa-calendar-alt me-2"></i>
+                {{ course.start_date.strftime('%d/%m/%Y') }}
+              </p>
+            {% endif %}
+
+            <!-- Deixe outros textos/descrições aqui se quiser, mas evite variar muito o tamanho -->
+
+            <!-- Empurra preço+botão para o rodapé do card -->
+            <div class="mt-auto">
+              <p class="text-light mb-3">
+                <i class="fas fa-money-bill-wave me-2"></i>
+                R$ {{ '%.2f'|format(course.price) }}
+              </p>
+
+              {% if course.purchase_link %}
+                <a
+                  href="{{ course.purchase_link }}"
+                  class="btn btn-primary w-100"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Comprar na Hotmart
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <p class="text-center">Nenhum curso ativo disponível.</p>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}
