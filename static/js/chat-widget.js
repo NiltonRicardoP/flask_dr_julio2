@@ -4,6 +4,9 @@
   const HISTORY_KEY = "chat_session_history";
   const MAX_HISTORY = 30;
   const MAX_MESSAGE_LENGTH = 500;
+  const GREETING =
+    "Ola! Posso ajudar com agendamento, contato, endereco, convenios e outras informacoes administrativas. " +
+    "Este chat nao faz diagnostico nem atendimento de urgencia.";
 
   function el(tag, attrs = {}, children = []) {
     const node = document.createElement(tag);
@@ -12,7 +15,7 @@
       else if (k === "html") node.innerHTML = v;
       else node.setAttribute(k, v);
     });
-    children.forEach(c => node.appendChild(c));
+    children.forEach((c) => node.appendChild(c));
     return node;
   }
 
@@ -31,7 +34,7 @@
       const data = JSON.parse(raw || "[]");
       if (Array.isArray(data)) return data;
     } catch (err) {
-      console.warn("Chat history inválido", err);
+      console.warn("Chat history invalido", err);
     }
     return [];
   }
@@ -56,7 +59,7 @@
     };
     const resp = await fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json; charset=utf-8", "Accept": "application/json" },
+      headers: { "Content-Type": "application/json; charset=utf-8", Accept: "application/json" },
       body: JSON.stringify(payload)
     });
     const data = await resp.json();
@@ -70,9 +73,11 @@
   ]);
 
   const panel = el("div", { class: "chat-panel chat-hidden" });
-
   const header = el("div", { class: "chat-header" });
-  const headerTitle = el("div", { class: "chat-header-title", html: "<strong>Atendimento</strong><span class='chat-sub'>Dúvidas e agendamentos</span>" });
+  const headerTitle = el("div", {
+    class: "chat-header-title",
+    html: "<strong>Atendimento</strong><span class='chat-sub'>Informacoes e agendamentos</span>"
+  });
   const resetBtn = el("button", { class: "chat-reset", type: "button" }, [document.createTextNode("Novo assunto")]);
   header.appendChild(headerTitle);
   header.appendChild(resetBtn);
@@ -86,7 +91,6 @@
     maxlength: String(MAX_MESSAGE_LENGTH)
   });
   const sendBtn = el("button", { class: "chat-send", type: "submit" }, [document.createTextNode("Enviar")]);
-
   const status = el("div", { class: "chat-status" });
 
   form.appendChild(input);
@@ -112,21 +116,24 @@
     status.textContent = text || "";
   }
 
+  function renderGreeting() {
+    addMsg("bot", GREETING);
+    pushHistory("assistant", GREETING);
+  }
+
   function resetConversation(withGreeting = true) {
     history = [];
     localStorage.removeItem(HISTORY_KEY);
     localStorage.removeItem(STORAGE_KEY);
     messages.innerHTML = "";
     if (withGreeting) {
-      const greeting = "Olá! Posso ajudar com dúvidas do site e agendamentos. Como posso te atender?";
-      addMsg("bot", greeting);
-      pushHistory("assistant", greeting);
+      renderGreeting();
     }
   }
 
   function renderHistory() {
     messages.innerHTML = "";
-    history.forEach(item => addMsg(item.role === "user" ? "user" : "bot", item.content));
+    history.forEach((item) => addMsg(item.role === "user" ? "user" : "bot", item.content));
   }
 
   button.addEventListener("click", () => {
@@ -134,9 +141,7 @@
     if (!panel.classList.contains("chat-hidden")) input.focus();
     if (messages.childElementCount === 0) {
       if (history.length === 0) {
-        const greeting = "Olá! Posso ajudar com dúvidas do site e agendamentos. Como posso te atender?";
-        addMsg("bot", greeting);
-        pushHistory("assistant", greeting);
+        renderGreeting();
       } else {
         renderHistory();
       }

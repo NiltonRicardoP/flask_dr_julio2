@@ -122,6 +122,35 @@ def test_chatbot_creates_pending_appointment(client):
         assert appt.status == "pending"
 
 
+def test_chatbot_requires_confirmation_before_starting_schedule(client):
+    response = client.post("/api/chat", json={"message": "agendar"})
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["ok"] is True
+    assert "nao confirma consultas automaticamente" in data["reply"]
+    assert "iniciar agendamento" in data["reply"]
+
+    with client.application.app_context():
+        assert Appointment.query.count() == 0
+
+
+def test_chatbot_blocks_clinical_advice(client):
+    response = client.post("/api/chat", json={"message": "Posso tomar remedio para dor?"})
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["ok"] is True
+    assert "nao fornece diagnostico" in data["reply"] or "nao sao respondidas por este chat" in data["reply"]
+
+
+def test_chatbot_redirects_emergency_cases(client):
+    response = client.post("/api/chat", json={"message": "Estou com dor no peito e falta de ar agora"})
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["ok"] is True
+    assert "SAMU" in data["reply"]
+    assert "192" in data["reply"]
+
+
 def test_chatbot_rejects_oversized_message(client):
     response = client.post("/api/chat", json={"message": "a" * 501})
     assert response.status_code == 400

@@ -20,6 +20,59 @@ _TIME_H_ONLY = re.compile(r"\b([01]?\d|2[0-3])\s*h\b")
 _TIME_4DIGITS = re.compile(r"\b([01]\d|2[0-3])([0-5]\d)\b")
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 
+SCHEDULE_KEYWORDS = ["marcar", "agendar", "agendamento", "vaga", "disponibilidade"]
+SCHEDULE_CONFIRM_PHRASES = [
+    "iniciar agendamento",
+    "quero iniciar agendamento",
+    "quero continuar agendamento",
+    "continuar agendamento",
+    "prosseguir com agendamento",
+]
+AFFIRMATIVE_WORDS = {"sim", "claro", "ok", "certo", "quero", "pode", "prosseguir", "continuar"}
+EMERGENCY_KEYWORDS = [
+    "dor no peito",
+    "falta de ar",
+    "desmaio",
+    "desmai",
+    "convuls",
+    "hemorrag",
+    "sangramento intenso",
+    "perda de consciencia",
+    "inconsciente",
+    "avc",
+    "infarto",
+    "suicid",
+]
+CLINICAL_QUESTION_PATTERNS = [
+    "o que eu tomo",
+    "o que tomar",
+    "qual remedio",
+    "qual remdio",
+    "posso tomar",
+    "qual medicamento",
+    "isso e grave",
+    "isso eh grave",
+    "isso e normal",
+    "isso eh normal",
+    "preciso de receita",
+    "preciso de atestado",
+    "interpretar exame",
+    "resultado do exame",
+]
+CLINICAL_KEYWORDS = [
+    "remedio",
+    "medicamento",
+    "receita",
+    "atestado",
+    "diagnostico",
+    "tratamento",
+    "exame",
+    "laudo",
+    "resultado",
+    "sintoma",
+    "sintomas",
+]
+
 
 def _normalize(text: str) -> str:
     s = (text or "").strip().lower()
@@ -37,6 +90,10 @@ def _safe_int(x, default=None):
         return int(x)
     except Exception:
         return default
+
+
+def _word_tokens(text: str) -> list[str]:
+    return re.findall(r"[a-z0-9']+", _normalize(text))
 
 
 def parse_day_from_text(text: str) -> date | None:
@@ -234,8 +291,93 @@ def extract_question_from_history(user_messages: list[str]) -> str | None:
 
 def looks_like_schedule_intent(text: str) -> bool:
     s = _normalize(text)
-    keywords = ["marcar", "agendar", "agendamento", "consulta", "horario", "vaga", "disponibilidade"]
-    return _contains_any(s, keywords)
+    if _contains_any(s, SCHEDULE_KEYWORDS):
+        return True
+    if "horario" in s and _contains_any(s, ["consulta", "retorno", "agenda"]):
+        return True
+    if "consulta" in s and _contains_any(s, ["quero", "preciso", "gostaria", "marcar"]):
+        return True
+    return False
+
+
+def _has_schedule_details(text: str) -> bool:
+    return any((
+        parse_day_from_text(text),
+        parse_time_from_text(text),
+        extract_phone(text),
+        extract_email(text),
+        extract_reason_from_text(text),
+    ))
+
+
+def _is_minimal_schedule_request(text: str) -> bool:
+    if not looks_like_schedule_intent(text):
+        return False
+    if _has_schedule_details(text):
+        return False
+    words = _word_tokens(text)
+    return len(words) <= 4
+
+
+def _assistant_requested_schedule_start(last_assistant: str | None) -> bool:
+    content = _normalize(last_assistant or "")
+    return "iniciar agendamento" in content or "continuar com o pedido de agendamento" in content
+
+
+def _is_affirmative_reply(text: str) -> bool:
+    words = set(_word_tokens(text))
+    if words & AFFIRMATIVE_WORDS:
+        return True
+    content = _normalize(text)
+    return any(phrase in content for phrase in SCHEDULE_CONFIRM_PHRASES)
+
+
+def _schedule_intro_reply() -> str:
+    return (
+        "Posso registrar um pedido de agendamento, mas este chat nao confirma consultas automaticamente "
+        "nem fornece orientacao medica.\n\n"
+        "Se quiser continuar, responda 'iniciar agendamento'. Se preferir, ja pode enviar data, horario, "
+        "nome e WhatsApp. Evite compartilhar dados sensiveis alem do necessario."
+    )
+
+
+def _emergency_reply(text: str) -> str | None:
+    norm = _normalize(text)
+    if not _contains_any(norm, EMERGENCY_KEYWORDS):
+        return None
+    return (
+        "Se isso estiver acontecendo agora ou houver risco imediato, procure atendimento de urgencia "
+        "imediatamente. No Brasil, voce pode acionar o SAMU pelo 192 ou ir para a emergencia mais proxima.\n\n"
+        "Este chat nao substitui atendimento medico de urgencia."
+    )
+
+
+def _clinical_safety_reply(text: str) -> str | None:
+    norm = _normalize(text)
+    if any(pattern in norm for pattern in CLINICAL_QUESTION_PATTERNS):
+        return (
+            "Por seguranca, este chat nao fornece diagnostico, prescricao, interpretacao de exames ou "
+            "orientacao sobre medicamentos.\n\n"
+            "Posso ajudar com agendamento, contato, endereco e outras informacoes administrativas, "
+            "ou encaminhar sua mensagem para a equipe."
+        )
+    if "?" not in text:
+        return None
+    if _contains_any(norm, CLINICAL_KEYWORDS):
+        return (
+            "Por seguranca, perguntas clinicas e sobre medicacao nao sao respondidas por este chat. "
+            "Posso encaminhar sua mensagem para a equipe ou ajudar a iniciar um agendamento."
+        )
+    return None
+
+
+def _supported_scope_reply() -> str:
+    return (
+        "Consigo responder com seguranca apenas sobre agendamento, contato, endereco, convenios, "
+        "cursos, eventos e informacoes publicas do consultorio.\n\n"
+        "Se sua pergunta for clinica ou estiver fora desse escopo, posso encaminhar para a equipe. "
+        "Qual e o seu nome? Evite enviar dados sensiveis alem do necessario."
+    )
 
 
 def _history_has_schedule_prompt(history: list[dict]) -> bool:
@@ -351,7 +493,10 @@ def _faq_reply(message: str, settings: Settings | None) -> str | None:
     norm = _normalize(message)
 
     if _contains_any(norm, ["oi", "ola", "ola", "bom dia", "boa tarde", "boa noite"]):
-        return "Ola! Posso ajudar com duvidas do consultorio e agendamentos. Como posso te atender?"
+        return (
+            "Ola! Posso ajudar com agendamento, contato, endereco, convenios e outras informacoes "
+            "administrativas do consultorio. Este chat nao faz diagnostico nem atendimento de urgencia."
+        )
 
     if _contains_any(norm, ["endereco", "endereco", "local", "onde fica", "como chegar"]):
         if settings and settings.address:
@@ -479,8 +624,25 @@ def chat():
         return jsonify({"ok": True, "session_id": session_id, "reply": reply, "reset_history": True}), 200
 
     settings = Settings.query.first()
+    schedule_prompt_active = _history_has_schedule_prompt(sanitized_history)
+    schedule_confirmation = _assistant_requested_schedule_start(last_assistant) and _is_affirmative_reply(message)
+    schedule_mode = schedule_prompt_active or (
+        looks_like_schedule_intent(aggregated_user_text)
+        and (_has_schedule_details(aggregated_user_text) or schedule_confirmation)
+    )
 
-    schedule_mode = looks_like_schedule_intent(aggregated_user_text) or _history_has_schedule_prompt(sanitized_history)
+    emergency_reply = _emergency_reply(aggregated_user_text)
+    if emergency_reply:
+        return jsonify({"ok": True, "session_id": session_id, "reply": emergency_reply}), 200
+
+    if not schedule_mode and _is_minimal_schedule_request(message):
+        reply = _schedule_intro_reply()
+        return jsonify({"ok": True, "session_id": session_id, "reply": reply}), 200
+
+    if not schedule_mode:
+        clinical_reply = _clinical_safety_reply(message)
+        if clinical_reply:
+            return jsonify({"ok": True, "session_id": session_id, "reply": clinical_reply}), 200
 
     if schedule_mode:
         if not parsed_day:
@@ -538,7 +700,7 @@ def chat():
     pending_question = extract_question_from_history(user_messages) or message
 
     if not name:
-        reply = "Posso encaminhar sua pergunta para a equipe. Qual e o seu nome?"
+        reply = _supported_scope_reply()
     elif not email:
         reply = "Qual e o seu e-mail para que possamos responder?"
     else:
