@@ -17,17 +17,17 @@ depends_on = None
 
 
 def upgrade():
-    op.alter_column(
-        "appointment",
-        "email",
-        existing_type=sa.String(length=100),
-        nullable=True
-    )
+    with op.batch_alter_table("appointment", schema=None) as batch_op:
+        batch_op.alter_column(
+            "email",
+            existing_type=sa.String(length=100),
+            nullable=True,
+        )
 
 def downgrade():
-    op.alter_column(
-        "appointment",
-        "email",
-        existing_type=sa.String(length=100),
-        nullable=False
-    )
+    with op.batch_alter_table("appointment", schema=None) as batch_op:
+        batch_op.alter_column(
+            "email",
+            existing_type=sa.String(length=100),
+            nullable=False,
+        )

@@ -9,6 +9,7 @@ from availability_routes import availability_bp
 from chatbot_routes import chatbot_bp
 from config import get_config_for_env
 from debug_routes import debug_bp
+from deploy import register_deploy_commands
 from extensions import db, login_manager, mail, migrate
 from health_routes import health_bp
 from models import Settings, User
@@ -71,6 +72,7 @@ def create_app(config_object=None) -> Flask:
 
     register_seed_commands(app)
     register_reminder_commands(app)
+    register_deploy_commands(app)
     _ensure_upload_dirs(app)
 
     @app.context_processor

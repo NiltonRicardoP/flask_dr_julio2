@@ -88,6 +88,11 @@ class SettingsSystemForm(FlaskForm):
 class SettingsGoogleCalendarForm(FlaskForm):
     google_calendar_id = StringField('Google Calendar ID', validators=[Optional(), Length(max=255)])
     google_attendee_emails = TextAreaField('Emails para convites', validators=[Optional(), Length(max=1000)])
+    google_credentials_file = FileField(
+        'Credencial do service account',
+        validators=[Optional(), FileAllowed(['json'], 'Envie um arquivo JSON do Google service account.')],
+    )
+    google_remove_credentials = BooleanField('Remover credenciais salvas no painel')
     google_sync_enabled = BooleanField('Ativar sincronizacao com Google Agenda')
     submit = SubmitField('Salvar configuracoes')
 

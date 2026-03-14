@@ -22,10 +22,22 @@
                         <strong>Credenciais:</strong>
                         {% if status.creds_exists %}
                             <span class="badge bg-success">OK</span>
-                            <div class="text-muted small">{{ status.creds_display or 'arquivo configurado' }}</div>
+                            <div class="text-muted small">
+                                {{ status.creds_display or 'arquivo configurado' }}
+                                {% if status.creds_source == 'db' %}
+                                    <span class="badge bg-primary ms-1">Painel</span>
+                                {% elif status.creds_source == 'env' %}
+                                    <span class="badge bg-secondary ms-1">Servidor</span>
+                                {% endif %}
+                            </div>
+                            {% if settings.google_credentials_uploaded_at and status.creds_source == 'db' %}
+                                <div class="text-muted small">
+                                    Atualizado em {{ settings.google_credentials_uploaded_at.strftime('%d/%m/%Y %H:%M') }}
+                                </div>
+                            {% endif %}
                         {% else %}
                             <span class="badge bg-danger">Nao encontrado</span>
-                            <div class="text-muted small">Defina GOOGLE_CREDENTIALS_FILE no .env</div>
+                            <div class="text-muted small">Envie o JSON do service account pelo painel ou use GOOGLE_CREDENTIALS_FILE no .env</div>
                         {% endif %}
                     </li>
                     <li class="mb-2">
@@ -69,7 +81,7 @@
         <div class="card shadow">
             <div class="card-body">
                 <h5 class="card-title mb-3">Configuracoes</h5>
-                <form method="POST" action="{{ url_for('admin_bp.settings_google_calendar') }}">
+                <form method="POST" action="{{ url_for('admin_bp.settings_google_calendar') }}" enctype="multipart/form-data">
                     {{ form.hidden_tag() }}
                     <div class="row">
                         <div class="col-md-8 mb-3">
@@ -87,6 +99,29 @@
                             <div class="form-check">
                                 {{ form.google_sync_enabled(class="form-check-input") }}
                                 {{ form.google_sync_enabled.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            {{ form.google_credentials_file.label(class="form-label") }}
+                            {{ form.google_credentials_file(class="form-control") }}
+                            {% if form.google_credentials_file.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.google_credentials_file.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Envie o JSON do Google service account. Quando salvo aqui, ele tem prioridade sobre o .env.
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3 d-flex align-items-end">
+                            <div class="form-check">
+                                {{ form.google_remove_credentials(class="form-check-input") }}
+                                {{ form.google_remove_credentials.label(class="form-check-label") }}
                             </div>
                         </div>
                     </div>

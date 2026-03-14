@@ -38,6 +38,7 @@ from forms import (
 )
 from appointments_api import create_pending_appointment
 from google_calendar import (
+    get_google_credentials_details,
     sync_google_calendar,
     upsert_appointment_event,
     cancel_appointment_event,
@@ -524,21 +525,34 @@ def _get_settings():
     return settings
 
 
-def _read_service_account_email(creds_path: str | None) -> str | None:
-    if not creds_path:
-        return None
+def _parse_service_account_upload(storage) -> tuple[str, str]:
+    raw = storage.read()
+    storage.stream.seek(0)
+    if not raw:
+        raise ValueError("Envie um arquivo JSON valido do Google service account.")
+
     try:
-        with open(creds_path, "r", encoding="utf-8") as handle:
-            data = json.load(handle)
-        value = data.get("client_email")
-        return value.strip() if isinstance(value, str) and value.strip() else None
-    except Exception:
-        return None
+        payload = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError, json.JSONDecodeError) as exc:
+        raise ValueError("Nao consegui ler o JSON das credenciais do Google.") from exc
+
+    if not isinstance(payload, dict):
+        raise ValueError("O arquivo do Google precisa conter um objeto JSON valido.")
+    if (payload.get("type") or "").strip() != "service_account":
+        raise ValueError("O JSON enviado nao e um service account do Google.")
+
+    client_email = (payload.get("client_email") or "").strip()
+    private_key = (payload.get("private_key") or "").strip()
+    if not client_email or not private_key:
+        raise ValueError("As credenciais do Google precisam conter client_email e private_key.")
+
+    filename = secure_filename(storage.filename or "") or "service-account.json"
+    serialized = json.dumps(payload, ensure_ascii=True, separators=(",", ":"))
+    return serialized, filename
 
 
 def _calendar_sync_status(settings: Settings) -> dict:
-    creds_path = (current_app.config.get("GOOGLE_CREDENTIALS_FILE") or "").strip()
-    creds_exists = bool(creds_path) and os.path.exists(creds_path)
+    creds = get_google_credentials_details(settings)
     calendar_id_db = (settings.google_calendar_id or "").strip() if settings else ""
     calendar_id_env = (current_app.config.get("GOOGLE_CALENDAR_ID") or "").strip()
     calendar_id = calendar_id_db or calendar_id_env
@@ -546,18 +560,17 @@ def _calendar_sync_status(settings: Settings) -> dict:
     tz = current_app.config.get("GOOGLE_CALENDAR_TZ", "America/Sao_Paulo")
     duration = current_app.config.get("GOOGLE_APPT_DURATION_MINUTES", 50)
     min_interval = current_app.config.get("GOOGLE_SYNC_MIN_INTERVAL_MIN", 2)
-    service_email = _read_service_account_email(creds_path)
-    ready = bool(settings.google_sync_enabled and calendar_id and creds_exists)
+    ready = bool(settings.google_sync_enabled and calendar_id and creds["exists"])
     return {
-        "creds_path": creds_path,
-        "creds_exists": creds_exists,
-        "creds_display": os.path.basename(creds_path) if creds_path else "",
+        "creds_exists": creds["exists"],
+        "creds_source": creds["source"],
+        "creds_display": creds["display"],
         "calendar_id": calendar_id,
         "calendar_source": calendar_source,
         "tz": tz,
         "duration": duration,
         "min_interval": min_interval,
-        "service_email": service_email,
+        "service_email": creds["client_email"],
         "ready": ready,
     }
 
@@ -854,7 +867,30 @@ def settings_google_calendar():
     test_form = GoogleCalendarTestForm()
 
     if form.validate_on_submit():
-        form.populate_obj(settings)
+        uploaded_file = form.google_credentials_file.data
+        remove_credentials = bool(form.google_remove_credentials.data)
+        if uploaded_file and remove_credentials:
+            flash('Envie um novo arquivo ou remova a credencial atual, mas nao os dois ao mesmo tempo.', 'warning')
+            return redirect(url_for('admin_bp.settings_google_calendar'))
+
+        settings.google_calendar_id = (form.google_calendar_id.data or "").strip() or None
+        settings.google_attendee_emails = (form.google_attendee_emails.data or "").strip() or None
+        settings.google_sync_enabled = bool(form.google_sync_enabled.data)
+
+        if uploaded_file:
+            try:
+                serialized, filename = _parse_service_account_upload(uploaded_file)
+            except ValueError as exc:
+                flash(str(exc), 'danger')
+                return redirect(url_for('admin_bp.settings_google_calendar'))
+            settings.google_credentials_json = serialized
+            settings.google_credentials_filename = filename
+            settings.google_credentials_uploaded_at = datetime.utcnow()
+        elif remove_credentials:
+            settings.google_credentials_json = None
+            settings.google_credentials_filename = None
+            settings.google_credentials_uploaded_at = None
+
         db.session.commit()
         flash('Configuracoes atualizadas com sucesso!', 'success')
         return redirect(url_for('admin_bp.settings_google_calendar'))

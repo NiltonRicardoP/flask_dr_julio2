@@ -14,10 +14,9 @@ Aplicação web em Flask para gerenciamento de agendamentos, eventos e conteúdo
    pip install -r requirements.txt
    ```
 
-3. Execute as migrações e crie o usuário administrador:
+3. Execute o bootstrap de deploy:
    ```bash
-   flask db upgrade
-   python create_admin.py
+   flask deploy
    ```
 
 ## Como executar
@@ -39,7 +38,7 @@ Para subir em produção, defina pelo menos:
 - `APP_ENV=production`
 - `SECRET_KEY` com valor forte
 - `DATABASE_URL`
-- `ADMIN_PASSWORD` para o script `create_admin.py`
+- `ADMIN_PASSWORD` para o bootstrap do admin
 
 Opcionalmente:
 
@@ -57,7 +56,7 @@ gunicorn app:app
 
 
 As migrações do banco ficam na pasta `migrations/`.
-Depois de clonar o projeto execute `flask db upgrade` para criar todas as tabelas e em seguida `python create_admin.py` para inserir ou atualizar o usuário administrador.
+Depois de clonar o projeto execute `flask deploy` para aplicar as migrações e garantir `Settings` e o usuário administrador.
 Com o ambiente virtual ativo e `FLASK_APP` apontando para `app.py`, gere uma nova migração sempre que modificar os modelos e aplique-a:
 
 ```bash
@@ -66,7 +65,7 @@ flask db migrate -m "Nova migração"
 flask db upgrade
 ```
 
-Se estiver apenas atualizando o repositório execute `flask db upgrade` para aplicar as migrações existentes.
+Se estiver apenas atualizando o repositório execute `flask deploy`.
 ## Variáveis de ambiente
 
 Crie um arquivo `.env` para definir as configurações sensíveis utilizadas pelo
@@ -76,6 +75,8 @@ Flask e pelo envio de emails. As principais variáveis são:
 - `DATABASE_URL` – URL do banco de dados (padrão `sqlite:///dr_julio.db`).
 - `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS`, `MAIL_USERNAME`, `MAIL_PASSWORD`,
   `MAIL_DEFAULT_SENDER` – dados para o servidor de email.
+- `GOOGLE_CREDENTIALS_FILE` – fallback opcional para o Google Calendar. O painel admin aceita upload do JSON do service account.
+- `CHATBOT_MAX_MESSAGE_LENGTH`, `CHATBOT_MAX_HISTORY_ITEMS` – limites de payload do chatbot.
 
 - `HOTMART_WEBHOOK_SECRET` – segredo para validar notificações do Hotmart.
 - `HOTMART_CLIENT_ID` e `HOTMART_CLIENT_SECRET` – credenciais OAuth da API do Hotmart.

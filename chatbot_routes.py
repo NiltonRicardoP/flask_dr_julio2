@@ -180,7 +180,7 @@ def extract_name(text: str) -> str | None:
 def extract_reason_from_text(text: str) -> str | None:
     if not text:
         return None
-    m = re.search(r"(?:motivo|queixa|assunto)\s*(?:[:\-]|e)\s*(.+)", text, flags=re.IGNORECASE)
+    m = re.search(r"(?:motivo|queixa|assunto)\s*(?::|-|e)?\s+(.+)", text, flags=re.IGNORECASE)
     if not m:
         return None
     reason = m.group(1).strip()
@@ -405,11 +405,17 @@ def _faq_reply(message: str, settings: Settings | None) -> str | None:
 @chatbot_bp.route("/api/chat", methods=["POST"])
 def chat():
     data = request.get_json(silent=True) or {}
+    max_message_length = max(100, int(current_app.config.get("CHATBOT_MAX_MESSAGE_LENGTH", 500)))
+    max_history_items = max(1, int(current_app.config.get("CHATBOT_MAX_HISTORY_ITEMS", 30)))
+    max_session_id_length = max(16, int(current_app.config.get("CHATBOT_MAX_SESSION_ID_LENGTH", 120)))
+
     message = (data.get("message") or "").strip()
     if not message:
         return jsonify({"ok": False, "error": "message e obrigatorio"}), 400
+    if len(message) > max_message_length:
+        return jsonify({"ok": False, "error": f"message excede {max_message_length} caracteres"}), 400
 
-    session_id = (data.get("session_id") or "").strip()
+    session_id = (data.get("session_id") or "").strip()[:max_session_id_length]
     history = data.get("history") or []
     if not isinstance(history, list):
         history = []
@@ -421,8 +427,8 @@ def chat():
         role = item.get("role")
         content = (item.get("content") or "").strip()
         if role in ("user", "assistant") and content:
-            sanitized_history.append({"role": role, "content": content})
-    sanitized_history = sanitized_history[-30:]
+            sanitized_history.append({"role": role, "content": content[:max_message_length]})
+    sanitized_history = sanitized_history[-max_history_items:]
 
     user_messages = [h["content"] for h in sanitized_history if h["role"] == "user"]
     if not user_messages or user_messages[-1] != message:

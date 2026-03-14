@@ -58,6 +58,58 @@ def _get_credentials_path() -> str | None:
     return _config_value("GOOGLE_CREDENTIALS_FILE")
 
 
+def _parse_service_account_info(raw: str | None) -> dict | None:
+    if not raw:
+        return None
+    try:
+        data = json.loads(raw)
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def get_google_credentials_details(settings: Settings | None = None) -> dict:
+    settings = _get_settings(settings)
+    payload = None
+    source = "none"
+    display = ""
+    path = ""
+
+    if settings and settings.google_credentials_json:
+        payload = _parse_service_account_info(settings.google_credentials_json)
+        if payload:
+            source = "db"
+            display = (settings.google_credentials_filename or "service-account.json").strip() or "service-account.json"
+
+    if payload is None:
+        path = _get_credentials_path() or ""
+        if path and os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as handle:
+                    payload = json.load(handle)
+            except (OSError, ValueError, json.JSONDecodeError):
+                payload = None
+            else:
+                if not isinstance(payload, dict):
+                    payload = None
+                else:
+                    source = "env"
+                    display = os.path.basename(path)
+
+    client_email = ""
+    if isinstance(payload, dict):
+        client_email = (payload.get("client_email") or "").strip()
+
+    return {
+        "exists": payload is not None,
+        "source": source,
+        "display": display,
+        "path": path,
+        "info": payload,
+        "client_email": client_email,
+    }
+
+
 def _get_timezone() -> str:
     return _config_value("GOOGLE_CALENDAR_TZ", "America/Sao_Paulo") or "America/Sao_Paulo"
 
@@ -80,10 +132,15 @@ def _get_sync_min_interval_minutes() -> int:
     return max(1, min(value, 60))
 
 
-def _load_credentials():
+def _load_credentials(settings: Settings | None = None):
     if service_account is None:
         return None
-    path = _get_credentials_path()
+    details = get_google_credentials_details(settings)
+    if not details["exists"]:
+        return None
+    if details["source"] == "db":
+        return service_account.Credentials.from_service_account_info(details["info"], scopes=SCOPES)
+    path = details["path"]
     if not path:
         return None
     if not os.path.exists(path):
@@ -93,10 +150,10 @@ def _load_credentials():
     return service_account.Credentials.from_service_account_file(path, scopes=SCOPES)
 
 
-def _get_service():
+def _get_service(settings: Settings | None = None):
     if build is None:
         return None
-    creds = _load_credentials()
+    creds = _load_credentials(settings)
     if not creds:
         return None
     return build("calendar", "v3", credentials=creds, cache_discovery=False)
@@ -305,7 +362,7 @@ def _should_sync(settings: Settings | None) -> bool:
         return False
     if not _get_calendar_id(settings):
         return False
-    if not _get_credentials_path():
+    if not get_google_credentials_details(settings)["exists"]:
         return False
     return True
 
@@ -318,7 +375,7 @@ def upsert_appointment_event(appointment: Appointment, settings: Settings | None
     settings = _get_settings(settings)
     if not _should_sync(settings):
         return False
-    service = _get_service()
+    service = _get_service(settings)
     if not service:
         return False
 
@@ -383,7 +440,7 @@ def upsert_calendar_event(event: CalendarEvent, settings: Settings | None = None
     settings = _get_settings(settings)
     if not _should_sync(settings):
         return False
-    service = _get_service()
+    service = _get_service(settings)
     if not service:
         return False
 
@@ -448,7 +505,7 @@ def cancel_calendar_event(event: CalendarEvent, settings: Settings | None = None
     settings = _get_settings(settings)
     if not _should_sync(settings):
         return False
-    service = _get_service()
+    service = _get_service(settings)
     if not service:
         return False
 
@@ -472,7 +529,7 @@ def cancel_appointment_event(appointment: Appointment, settings: Settings | None
     settings = _get_settings(settings)
     if not _should_sync(settings):
         return False
-    service = _get_service()
+    service = _get_service(settings)
     if not service:
         return False
 
@@ -607,7 +664,7 @@ def sync_google_calendar(settings: Settings | None = None, force: bool = False) 
         if delta.total_seconds() < _get_sync_min_interval_minutes() * 60:
             return False
 
-    service = _get_service()
+    service = _get_service(settings)
     if not service:
         return False
 

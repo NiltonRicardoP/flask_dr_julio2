@@ -3,6 +3,7 @@
   const STORAGE_KEY = "chat_session_id";
   const HISTORY_KEY = "chat_session_history";
   const MAX_HISTORY = 30;
+  const MAX_MESSAGE_LENGTH = 500;
 
   function el(tag, attrs = {}, children = []) {
     const node = document.createElement(tag);
@@ -78,7 +79,12 @@
   const messages = el("div", { class: "chat-messages" });
 
   const form = el("form", { class: "chat-form" });
-  const input = el("input", { class: "chat-input", type: "text", placeholder: "Digite sua mensagem..." });
+  const input = el("input", {
+    class: "chat-input",
+    type: "text",
+    placeholder: "Digite sua mensagem...",
+    maxlength: String(MAX_MESSAGE_LENGTH)
+  });
   const sendBtn = el("button", { class: "chat-send", type: "submit" }, [document.createTextNode("Enviar")]);
 
   const status = el("div", { class: "chat-status" });
@@ -145,6 +151,10 @@
     e.preventDefault();
     const text = (input.value || "").trim();
     if (!text) return;
+    if (text.length > MAX_MESSAGE_LENGTH) {
+      setStatus(`Limite de ${MAX_MESSAGE_LENGTH} caracteres por mensagem.`);
+      return;
+    }
 
     addMsg("user", text);
     pushHistory("user", text);
