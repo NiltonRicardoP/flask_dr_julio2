@@ -20,3 +20,4 @@ PyMySQL>=1.1.0
 google-api-python-client
 google-auth
 google-auth-httplib2
+bleach>=6.1.0

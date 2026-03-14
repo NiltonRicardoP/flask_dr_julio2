@@ -11,7 +11,7 @@
             {% if course.image %}
                 <img src="{{ url_for('static', filename='uploads/courses/' + course.image) }}" class="img-fluid mb-4" alt="{{ course.title }}">
             {% endif %}
-            <div>{{ course.description|safe }}</div>
+            <div>{{ course.description|sanitize_html }}</div>
         </div>
         <div class="col-md-4">
             <div class="card bg-dark-blue shadow border-0">

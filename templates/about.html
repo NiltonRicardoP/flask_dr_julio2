@@ -24,7 +24,7 @@
                     <h3><i class="fas fa-graduation-cap me-2"></i>Formação Acadêmica</h3>
                     <div class="text-content">
                         {% if settings and settings.academic_background %}
-                            {{ settings.academic_background|safe }}
+                            {{ settings.academic_background|sanitize_html }}
                         {% else %}
                             <ul>
                                 <li>Psicólogo, especialista em Neuropsicologia</li>
@@ -39,7 +39,7 @@
                     <h3><i class="fas fa-briefcase me-2"></i>Experiência Profissional</h3>
                     <div class="text-content">
                         {% if settings and settings.professional_experience %}
-                            {{ settings.professional_experience|safe }}
+                            {{ settings.professional_experience|sanitize_html }}
                         {% else %}
                             <ul>
                                 <li>Consultório particular com atendimento a crianças, adolescentes e adultos</li>
@@ -76,7 +76,7 @@
                     {% endif %}
                 </div>
                 <h3>{{ item.title }}</h3>
-                <p class="text-content">{{ item.body|default('')|replace('\n', '<br>')|safe }}</p>
+                <p class="text-content">{{ item.body|default('')|nl2br }}</p>
             </div>
             {% endfor %}
         </div>

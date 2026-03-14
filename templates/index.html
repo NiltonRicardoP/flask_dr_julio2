@@ -25,7 +25,7 @@
                     <span class="hero-kicker" data-reveal="fade-up">Neuropsicologia clinica com presenca, metodo e cuidado</span>
                     <h1 class="display-4 name-title" data-reveal="fade-up" data-reveal-delay="80">
                         {% if hero_section and hero_section.title %}
-                            {{ hero_section.title|replace('\n', '<br>')|safe }}
+                            {{ hero_section.title|nl2br }}
                         {% else %}
                             DR. JULIO<br>VASCONCELOS
                         {% endif %}
@@ -92,7 +92,7 @@
                         {% endif %}
                     </div>
                     <h3>{{ item.title }}</h3>
-                    <p>{{ item.body|default('')|replace('\n', '<br>')|safe }}</p>
+                    <p>{{ item.body|default('')|nl2br }}</p>
                 </div>
             </div>
             {% endfor %}
@@ -165,7 +165,7 @@
                             <i class="fas fa-circle fa-3x text-primary mb-3"></i>
                         {% endif %}
                         <h3>{{ item.title }}</h3>
-                        <p>{{ item.body|default('')|replace('\n', '<br>')|safe }}</p>
+                        <p>{{ item.body|default('')|nl2br }}</p>
                     </div>
                 </div>
             </div>
@@ -233,7 +233,7 @@
                                 <br>
                                 <i class="fas fa-map-marker-alt me-2"></i> {{ event.location }}
                             </p>
-                            <p class="card-text">{{ event.description|truncate(100) }}</p>
+                            <p class="card-text">{{ event.description|sanitize_html|striptags|truncate(100) }}</p>
                         </div>
                     </div>
                 </div>

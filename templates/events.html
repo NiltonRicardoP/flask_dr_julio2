@@ -29,7 +29,7 @@
                                     <br>
                                     <i class="fas fa-map-marker-alt me-2"></i> {{ event.location }}
                                 </p>
-                                <p class="card-text">{{ event.description|truncate(200) }}</p>
+                                <p class="card-text">{{ event.description|sanitize_html|striptags|truncate(200) }}</p>
                                 <button type="button" class="btn btn-consult" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">
                                     Ver Detalhes
                                 </button>
@@ -66,7 +66,7 @@
                                     </p>
                                     <hr style="border-top-color: #2d3748;">
                                     <div>
-                                        {{ event.description|safe }}
+                                        {{ event.description|sanitize_html }}
                                     </div>
                                 </div>
                                 <div class="modal-footer" style="border-top-color: #2d3748;">
@@ -100,7 +100,7 @@
                                     <br>
                                     <i class="fas fa-map-marker-alt me-2"></i> {{ event.location }}
                                 </p>
-                                <p class="card-text">{{ event.description|truncate(150) }}</p>
+                                <p class="card-text">{{ event.description|sanitize_html|striptags|truncate(150) }}</p>
                                 <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#eventModal{{ event.id }}">
                                     Ver Detalhes
                                 </button>
@@ -137,7 +137,7 @@
                                     </p>
                                     <hr style="border-top-color: #2d3748;">
                                     <div>
-                                        {{ event.description|safe }}
+                                        {{ event.description|sanitize_html }}
                                     </div>
                                 </div>
                                 <div class="modal-footer" style="border-top-color: #2d3748;">

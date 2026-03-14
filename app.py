@@ -14,6 +14,7 @@ from extensions import db, login_manager, mail, migrate
 from health_routes import health_bp
 from models import Settings, User
 from reminders import register_reminder_commands
+from security import apply_security_headers, register_template_security
 from routes import main_bp
 from seed import register_seed_commands
 from student_routes import student_bp
@@ -73,12 +74,17 @@ def create_app(config_object=None) -> Flask:
     register_seed_commands(app)
     register_reminder_commands(app)
     register_deploy_commands(app)
+    register_template_security(app)
     _ensure_upload_dirs(app)
 
     @app.context_processor
     def inject_settings():
         settings = Settings.query.first()
         return {"settings": settings or {}, "current_year": datetime.now().year}
+
+    @app.after_request
+    def add_security_headers(response):
+        return apply_security_headers(response)
 
     return app
 
