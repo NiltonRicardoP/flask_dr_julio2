@@ -148,6 +148,24 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.calendar' %}active{% endif %}" href="{{ url_for('admin_bp.calendar') }}">
+                                <i class="fas fa-calendar-days"></i>
+                                Agenda
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.add_appointment' %}active{% endif %}" href="{{ url_for('admin_bp.add_appointment') }}">
+                                <i class="fas fa-calendar-plus"></i>
+                                Novo Agendamento
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint in ['admin_bp.patients', 'admin_bp.add_patient', 'admin_bp.edit_patient', 'admin_bp.patient_detail'] %}active{% endif %}" href="{{ url_for('admin_bp.patients') }}">
+                                <i class="fas fa-user"></i>
+                                Pacientes
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'admin_bp.events' %}active{% endif %}" href="{{ url_for('admin_bp.events') }}">
                                 <i class="fas fa-calendar-alt"></i>
                                 Eventos
@@ -173,6 +191,12 @@
                             <a class="nav-link {% if request.endpoint == 'admin_bp.courses' %}active{% endif %}" href="{{ url_for('admin_bp.courses') }}">
                                 <i class="fas fa-book"></i>
                                 Cursos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint in ['admin_bp.site_sections', 'admin_bp.add_site_section', 'admin_bp.edit_site_section', 'admin_bp.site_section_items', 'admin_bp.add_site_section_item', 'admin_bp.edit_site_section_item'] %}active{% endif %}" href="{{ url_for('admin_bp.site_sections') }}">
+                                <i class="fas fa-layer-group"></i>
+                                Secoes do Site
                             </a>
                         </li>
                     </ul>
@@ -202,9 +226,39 @@
                     <div class="sidebar-header mt-4">Sistema</div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link {% if request.endpoint == 'admin_bp.settings' %}active{% endif %}" href="{{ url_for('admin_bp.settings') }}">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.settings_system' %}active{% endif %}" href="{{ url_for('admin_bp.settings_system') }}">
                                 <i class="fas fa-cog"></i>
-                                Configurações
+                                Sistema
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.settings_google_calendar' %}active{% endif %}" href="{{ url_for('admin_bp.settings_google_calendar') }}">
+                                <i class="fas fa-calendar-days"></i>
+                                Google Agenda
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.settings_email' %}active{% endif %}" href="{{ url_for('admin_bp.settings_email') }}">
+                                <i class="fas fa-envelope"></i>
+                                Email
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.settings_profile' %}active{% endif %}" href="{{ url_for('admin_bp.settings_profile') }}">
+                                <i class="fas fa-briefcase"></i>
+                                Informacoes Profissionais
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.settings_social' %}active{% endif %}" href="{{ url_for('admin_bp.settings_social') }}">
+                                <i class="fas fa-share-nodes"></i>
+                                Redes Sociais
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'admin_bp.settings_image' %}active{% endif %}" href="{{ url_for('admin_bp.settings_image') }}">
+                                <i class="fas fa-image"></i>
+                                Imagem do Sobre
                             </a>
                         </li>
                         <li class="nav-item">

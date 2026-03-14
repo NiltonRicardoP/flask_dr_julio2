@@ -4,6 +4,13 @@ venv/
 ENV/
 env/
 
+# Segredos locais
+.env
+.env.*
+!.env.example
+gen-lang-client-*.json
+*-service-account.json
+
 # Cache Python
 __pycache__/
 *.py[cod]

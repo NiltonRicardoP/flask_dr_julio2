@@ -5,6 +5,7 @@
 {% block body_class %}dark-theme{% endblock %}
 
 {% block content %}
+{% set areas_section = sections['about-areas'] if sections and 'about-areas' in sections else None %}
 <section class="about-section py-5">
     <div class="container">
         <div class="row">
@@ -16,7 +17,7 @@
                 {% endif %}
             </div>
             <div class="col-md-8 mb-4">
-                <h1 class="mb-3">Dr. Julio Vasconcelos</h1>
+                <h1 class="mb-3">{{ settings.site_title if settings and settings.site_title else 'Dr. Julio Vasconcelos' }}</h1>
                 <p class="lead text-content">{% if settings and settings.about_text %}{{ settings.about_text }}{% endif %}</p>
 
                 <div class="academic-section mt-4">
@@ -55,9 +56,32 @@
 
 <section class="services-section py-5">
     <div class="container">
-        <h2 class="text-center mb-5">Áreas de Atuação</h2>
+        <h2 class="text-center mb-5">
+            {% if areas_section and areas_section.title %}
+                {{ areas_section.title }}
+            {% else %}
+                Areas de Atuacao
+            {% endif %}
+        </h2>
 
+        {% if areas_section and areas_section.items %}
         <div class="row text-center">
+            {% for item in areas_section.items if item.is_active %}
+            <div class="col-md-4 mb-4">
+                <div class="service-icon">
+                    {% if item.icon %}
+                        <i class="{{ item.icon }}"></i>
+                    {% else %}
+                        <i class="fas fa-circle"></i>
+                    {% endif %}
+                </div>
+                <h3>{{ item.title }}</h3>
+                <p class="text-content">{{ item.body|default('')|replace('\n', '<br>')|safe }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+<div class="row text-center">
             <div class="col-md-4 mb-4">
                 <div class="service-icon">
                     <i class="fas fa-brain"></i>
@@ -82,6 +106,7 @@
                 <p class="text-content">Atuação como professor e palestrante em cursos de graduação e pós-graduação em Psicologia.</p>
             </div>
         </div>
+        {% endif %}
     </div>
 </section>
 {% endblock %}

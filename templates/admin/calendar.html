@@ -1,0 +1,548 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Agenda{% endblock %}
+{% block page_title %}Agenda{% endblock %}
+
+{% block extra_css %}
+<style>
+    .calendar-panel {
+        background: #0b1220;
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        padding: 16px;
+        color: #e5e7eb;
+    }
+    .calendar-muted {
+        color: #9ca3af;
+        font-size: 0.9rem;
+    }
+    .calendar-actions .btn {
+        width: 100%;
+    }
+    #calendar {
+        min-height: 640px;
+    }
+    .fc {
+        color: #e5e7eb;
+    }
+    .fc .fc-toolbar-title {
+        color: #e5e7eb;
+        font-size: 1.2rem;
+    }
+    .fc .fc-button {
+        background: #111827;
+        border: 1px solid #374151;
+        color: #e5e7eb;
+        box-shadow: none;
+    }
+    .fc .fc-button-primary:not(:disabled).fc-button-active {
+        background: #2563eb;
+        border-color: #2563eb;
+    }
+    .fc-theme-standard .fc-scrollgrid,
+    .fc-theme-standard td,
+    .fc-theme-standard th {
+        border-color: #1f2937;
+    }
+    .fc .fc-daygrid-day-number,
+    .fc .fc-col-header-cell-cushion {
+        color: #cbd5f5;
+    }
+    .fc .fc-timegrid-slot-label {
+        color: #9ca3af;
+    }
+    .fc .fc-list-day-cushion,
+    .fc .fc-list-table td {
+        background: #0b1220;
+        color: #e5e7eb;
+        border-color: #1f2937;
+    }
+    .calendar-alert {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="calendar-alert" class="alert calendar-alert" role="alert"></div>
+
+<div class="row g-4">
+    <div class="col-lg-3">
+        <div class="calendar-panel mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>Status</strong>
+                {% if status.ready %}
+                    <span class="badge bg-success">Sync ativa</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">Sync pendente</span>
+                {% endif %}
+            </div>
+            <div class="calendar-muted">Agenda: {{ status.calendar_id or 'nao definida' }}</div>
+            <div class="calendar-muted">Ultima sync: {{ settings.google_sync_last_at.strftime('%d/%m/%Y %H:%M') if settings.google_sync_last_at else 'nunca' }}</div>
+            <div class="calendar-muted">Fuso: {{ status.tz }}</div>
+            <div class="calendar-muted">Duracao consultas: {{ status.duration }} min</div>
+            <div class="calendar-muted mt-2">
+                <a href="{{ url_for('admin_bp.settings_google_calendar') }}" class="text-decoration-none">Abrir configuracoes</a>
+            </div>
+        </div>
+
+        <div class="calendar-panel mb-3">
+            <strong>Filtros</strong>
+            <div class="form-check mt-3">
+                <input class="form-check-input" type="checkbox" value="1" id="filter-appointments" checked>
+                <label class="form-check-label" for="filter-appointments">Consultas</label>
+            </div>
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" value="1" id="filter-manual" checked>
+                <label class="form-check-label" for="filter-manual">Compromissos</label>
+            </div>
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" value="1" id="filter-cancelled">
+                <label class="form-check-label" for="filter-cancelled">Mostrar cancelados</label>
+            </div>
+        </div>
+
+        <div class="calendar-panel calendar-actions">
+            <button class="btn btn-primary mb-2" id="create-event-btn">Novo compromisso</button>
+            <form method="POST" action="{{ url_for('admin_bp.google_calendar_sync') }}">
+                {{ sync_form.csrf_token }}
+                <button type="submit" class="btn btn-outline-light">Sincronizar agora</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        <div class="calendar-panel">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalTitle">Compromisso</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="event-form">
+                    <input type="hidden" id="event-id">
+                    <div id="event-meta" class="calendar-muted mb-2"></div>
+                    <div class="mb-3">
+                        <label class="form-label">Titulo</label>
+                        <input type="text" class="form-control" id="event-title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descricao</label>
+                        <textarea class="form-control" id="event-description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Inicio (data)</label>
+                            <input type="date" class="form-control" id="event-start-date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Inicio (hora)</label>
+                            <input type="time" class="form-control" id="event-start-time">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Fim (data)</label>
+                            <input type="date" class="form-control" id="event-end-date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Fim (hora)</label>
+                            <input type="time" class="form-control" id="event-end-time">
+                        </div>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="1" id="event-all-day">
+                        <label class="form-check-label" for="event-all-day">Evento de dia inteiro</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-danger" id="event-delete-btn">Cancelar compromisso</button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="event-save-btn">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="appointmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title">Consulta</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2"><strong>Paciente:</strong> <span id="appt-name"></span></div>
+                <div class="mb-2"><strong>Data:</strong> <span id="appt-date"></span></div>
+                <div class="mb-2"><strong>Horario:</strong> <span id="appt-time"></span></div>
+                <div class="mb-2"><strong>Status:</strong> <span id="appt-status"></span></div>
+                <div class="mb-2"><strong>Email:</strong> <span id="appt-email"></span></div>
+                <div class="mb-2"><strong>Telefone:</strong> <span id="appt-phone"></span></div>
+                <div class="mb-2"><strong>Motivo:</strong></div>
+                <div class="calendar-muted" id="appt-reason"></div>
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-outline-light" href="{{ url_for('admin_bp.appointments') }}">Abrir lista de consultas</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script>
+    window.addEventListener('load', () => {
+    const alertBox = document.getElementById('calendar-alert');
+    const modalEl = document.getElementById('eventModal');
+    const apptModalEl = document.getElementById('appointmentModal');
+    const bootstrapApi = window.bootstrap;
+    const eventModal = bootstrapApi ? new bootstrapApi.Modal(modalEl) : null;
+    const appointmentModal = bootstrapApi ? new bootstrapApi.Modal(apptModalEl) : null;
+
+    const filterAppointments = document.getElementById('filter-appointments');
+    const filterManual = document.getElementById('filter-manual');
+    const filterCancelled = document.getElementById('filter-cancelled');
+
+    const eventIdInput = document.getElementById('event-id');
+    const titleInput = document.getElementById('event-title');
+    const descInput = document.getElementById('event-description');
+    const startDateInput = document.getElementById('event-start-date');
+    const startTimeInput = document.getElementById('event-start-time');
+    const endDateInput = document.getElementById('event-end-date');
+    const endTimeInput = document.getElementById('event-end-time');
+    const allDayInput = document.getElementById('event-all-day');
+    const deleteBtn = document.getElementById('event-delete-btn');
+    const metaBox = document.getElementById('event-meta');
+
+    function showAlert(message, type) {
+        alertBox.className = `alert calendar-alert alert-${type}`;
+        alertBox.textContent = message;
+        alertBox.style.display = 'block';
+        setTimeout(() => {
+            alertBox.style.display = 'none';
+        }, 4000);
+    }
+
+    if (!window.FullCalendar) {
+        showAlert('Falha ao carregar o calendario. Verifique os arquivos do FullCalendar.', 'danger');
+    }
+
+    function pad(num) {
+        return String(num).padStart(2, '0');
+    }
+
+    function formatDateInput(dateObj) {
+        return `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}`;
+    }
+
+    function formatTimeInput(dateObj) {
+        return `${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
+    }
+
+    function normalizeDateTime(dateValue, timeValue, allDay) {
+        if (!dateValue) {
+            return null;
+        }
+        if (allDay) {
+            return `${dateValue}T00:00:00`;
+        }
+        const time = timeValue || '00:00';
+        return `${dateValue}T${time}:00`;
+    }
+
+    function openEventModal(eventData) {
+        if (eventData && eventData.extendedProps) {
+            eventIdInput.value = eventData.extendedProps.item_id || '';
+            titleInput.value = eventData.title || '';
+            descInput.value = eventData.extendedProps.description || '';
+            const sourceLabel = eventData.extendedProps.source || 'system';
+            const statusLabel = eventData.extendedProps.status || 'active';
+            metaBox.textContent = `Origem: ${sourceLabel} | Status: ${statusLabel}`;
+            startDateInput.value = formatDateInput(eventData.start);
+            startTimeInput.value = formatTimeInput(eventData.start);
+            if (eventData.end) {
+                const endDate = new Date(eventData.end);
+                if (eventData.allDay) {
+                    endDate.setDate(endDate.getDate() - 1);
+                }
+                endDateInput.value = formatDateInput(endDate);
+                endTimeInput.value = formatTimeInput(endDate);
+            } else {
+                endDateInput.value = formatDateInput(eventData.start);
+                endTimeInput.value = formatTimeInput(eventData.start);
+            }
+            allDayInput.checked = eventData.allDay || false;
+            deleteBtn.classList.toggle('d-none', false);
+        } else if (eventData) {
+            eventIdInput.value = '';
+            titleInput.value = '';
+            descInput.value = '';
+            metaBox.textContent = '';
+            startDateInput.value = formatDateInput(eventData.start);
+            let endDate = eventData.end ? new Date(eventData.end) : new Date(eventData.start);
+            if (eventData.allDay && eventData.end) {
+                endDate.setDate(endDate.getDate() - 1);
+            }
+            endDateInput.value = formatDateInput(endDate);
+            startTimeInput.value = formatTimeInput(eventData.start);
+            endTimeInput.value = eventData.end ? formatTimeInput(endDate) : formatTimeInput(eventData.start);
+            allDayInput.checked = eventData.allDay || false;
+            deleteBtn.classList.toggle('d-none', true);
+        } else {
+            eventIdInput.value = '';
+            titleInput.value = '';
+            descInput.value = '';
+            metaBox.textContent = '';
+            const now = new Date();
+            startDateInput.value = formatDateInput(now);
+            endDateInput.value = formatDateInput(now);
+            startTimeInput.value = formatTimeInput(now);
+            endTimeInput.value = formatTimeInput(new Date(now.getTime() + 60 * 60000));
+            allDayInput.checked = false;
+            deleteBtn.classList.toggle('d-none', true);
+        }
+        toggleAllDayFields();
+        eventModal.show();
+    }
+
+    function toggleAllDayFields() {
+        const disabled = allDayInput.checked;
+        startTimeInput.disabled = disabled;
+        endTimeInput.disabled = disabled;
+    }
+
+    allDayInput.addEventListener('change', toggleAllDayFields);
+
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl || !window.FullCalendar) {
+        showAlert('Calendario indisponivel. Recarregue a pagina.', 'warning');
+    } else {
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            height: 'auto',
+            selectable: true,
+            editable: true,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+            },
+            eventSources: [
+                {
+                    url: '{{ url_for("admin_bp.calendar_events") }}',
+                    method: 'GET',
+                    extraParams: () => ({
+                        appointments: filterAppointments.checked ? '1' : '0',
+                        manual: filterManual.checked ? '1' : '0',
+                        cancelled: filterCancelled.checked ? '1' : '0'
+                    })
+                }
+            ],
+            select: (info) => {
+                openEventModal({
+                    start: info.start,
+                    end: info.end,
+                    allDay: info.allDay
+                });
+            },
+            eventClick: (info) => {
+                const kind = info.event.extendedProps.kind;
+                if (kind === 'appointment') {
+                    document.getElementById('appt-name').textContent = info.event.title.replace('Consulta - ', '');
+                    document.getElementById('appt-date').textContent = formatDateInput(info.event.start);
+                    document.getElementById('appt-time').textContent = formatTimeInput(info.event.start);
+                    document.getElementById('appt-status').textContent = info.event.extendedProps.status || '';
+                    document.getElementById('appt-email').textContent = info.event.extendedProps.email || 'n/d';
+                    document.getElementById('appt-phone').textContent = info.event.extendedProps.phone || 'n/d';
+                    document.getElementById('appt-reason').textContent = info.event.extendedProps.reason || 'n/d';
+                    if (appointmentModal) {
+                        appointmentModal.show();
+                    } else {
+                        showAlert('Modal indisponivel. Verifique o Bootstrap.', 'warning');
+                    }
+                    return;
+                }
+                openEventModal(info.event);
+            },
+            eventDrop: (info) => {
+                if (info.event.extendedProps.kind !== 'calendar_event') {
+                    info.revert();
+                    return;
+                }
+                saveEvent(info.event, false, info.revert);
+            },
+            eventResize: (info) => {
+                if (info.event.extendedProps.kind !== 'calendar_event') {
+                    info.revert();
+                    return;
+                }
+                saveEvent(info.event, false, info.revert);
+            }
+        });
+
+        calendar.render();
+        setTimeout(() => {
+            calendar.updateSize();
+        }, 0);
+
+        function refreshCalendar() {
+            calendar.refetchEvents();
+        }
+
+        filterAppointments.addEventListener('change', refreshCalendar);
+        filterManual.addEventListener('change', refreshCalendar);
+        filterCancelled.addEventListener('change', refreshCalendar);
+
+        document.getElementById('create-event-btn').addEventListener('click', () => {
+            openEventModal(null);
+        });
+
+        async function saveEvent(eventObj, closeModal = true, onFail = null) {
+            const itemId = eventObj.extendedProps.item_id;
+            let startValue = `${formatDateInput(eventObj.start)}T${formatTimeInput(eventObj.start)}:00`;
+            let endValue = eventObj.end
+                ? `${formatDateInput(eventObj.end)}T${formatTimeInput(eventObj.end)}:00`
+                : null;
+            if (eventObj.allDay) {
+            startValue = `${formatDateInput(eventObj.start)}T00:00:00`;
+            if (eventObj.end) {
+                endValue = `${formatDateInput(eventObj.end)}T00:00:00`;
+            } else {
+                const endDate = new Date(eventObj.start);
+                endDate.setDate(endDate.getDate() + 1);
+                endValue = `${formatDateInput(endDate)}T00:00:00`;
+            }
+        }
+        const payload = {
+            title: eventObj.title,
+            description: eventObj.extendedProps.description || '',
+            start: startValue,
+            end: endValue,
+            allDay: eventObj.allDay
+        };
+
+        try {
+            const res = await fetch(`{{ url_for("admin_bp.calendar_event_update", event_id=0) }}`.replace('/0', `/${itemId}`), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                throw new Error('Falha ao salvar evento');
+            }
+            const data = await res.json();
+            if (data.sync_ok === false) {
+                showAlert('Evento salvo, mas nao foi possivel sincronizar com o Google.', 'warning');
+            } else {
+                showAlert('Evento atualizado com sucesso.', 'success');
+            }
+            refreshCalendar();
+            if (closeModal && eventModal) {
+                eventModal.hide();
+            }
+        } catch (err) {
+            showAlert('Nao foi possivel salvar o evento.', 'danger');
+            if (onFail) {
+                onFail();
+            }
+        }
+        }
+
+        document.getElementById('event-save-btn').addEventListener('click', async () => {
+            const allDay = allDayInput.checked;
+            let startValue = normalizeDateTime(startDateInput.value, startTimeInput.value, allDay);
+            let endValue = normalizeDateTime(endDateInput.value, endTimeInput.value, allDay);
+
+        if (allDay && endValue) {
+            const endDate = new Date(endValue);
+            const startDate = new Date(startValue);
+            if (endDate < startDate) {
+                endDate.setTime(startDate.getTime());
+            }
+            endDate.setDate(endDate.getDate() + 1);
+            endValue = `${formatDateInput(endDate)}T00:00:00`;
+        }
+
+        const payload = {
+            title: titleInput.value.trim(),
+            description: descInput.value.trim(),
+            start: startValue,
+            end: endValue,
+            allDay: allDay
+        };
+
+        if (!payload.title) {
+            showAlert('Informe um titulo para o compromisso.', 'warning');
+            return;
+        }
+
+        if (!payload.start) {
+            showAlert('Informe a data de inicio.', 'warning');
+            return;
+        }
+
+        const eventId = eventIdInput.value;
+        try {
+            const url = eventId
+                ? `{{ url_for("admin_bp.calendar_event_update", event_id=0) }}`.replace('/0', `/${eventId}`)
+                : '{{ url_for("admin_bp.calendar_event_create") }}';
+            const method = eventId ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                throw new Error('Falha ao salvar evento');
+            }
+            const data = await res.json();
+            if (data.sync_ok === false) {
+                showAlert('Evento salvo, mas nao foi possivel sincronizar com o Google.', 'warning');
+            } else {
+                showAlert(eventId ? 'Evento atualizado com sucesso.' : 'Evento criado com sucesso.', 'success');
+            }
+            refreshCalendar();
+            if (eventModal) {
+                eventModal.hide();
+            }
+        } catch (err) {
+            showAlert('Nao foi possivel salvar o evento.', 'danger');
+        }
+        });
+
+        deleteBtn.addEventListener('click', async () => {
+            const eventId = eventIdInput.value;
+            if (!eventId) {
+                return;
+            }
+            try {
+            const res = await fetch(`{{ url_for("admin_bp.calendar_event_delete", event_id=0) }}`.replace('/0', `/${eventId}`), {
+                method: 'DELETE'
+            });
+            if (!res.ok) {
+                throw new Error('Falha ao cancelar evento');
+            }
+            showAlert('Compromisso cancelado.', 'info');
+            refreshCalendar();
+            if (eventModal) {
+                eventModal.hide();
+            }
+        } catch (err) {
+            showAlert('Nao foi possivel cancelar o compromisso.', 'danger');
+        }
+        });
+    }
+    });
+</script>
+{% endblock %}

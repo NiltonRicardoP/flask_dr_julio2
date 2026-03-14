@@ -16,7 +16,12 @@ from flask_mail import Message
 from forms import (
     ContactForm,
     AppointmentForm,
+    RescheduleForm,
+    CancelAppointmentForm,
 )
+from appointments_api import create_pending_appointment
+from availability_service import get_slot_config, is_slot_available
+from google_calendar import upsert_appointment_event, cancel_appointment_event
 from models import (
     db,
     Event,
@@ -24,23 +29,40 @@ from models import (
     Settings,
     Course,
     ContactMessage,
+    SiteSection,
 )
 
 # Create a Blueprint for the main routes
 main_bp = Blueprint("main_bp", __name__)
 
 
+def _get_sections_for_page(page: str):
+    sections = (
+        SiteSection.query.filter_by(page=page, is_active=True)
+        .order_by(SiteSection.sort_order.asc(), SiteSection.id.asc())
+        .all()
+    )
+    return {section.slug: section for section in sections}
+
+
 @main_bp.route("/")
 def index():
     settings = Settings.query.first()
     upcoming_events = Event.get_upcoming_events()[:3]  # Limit to 3 events
-    return render_template("index.html", settings=settings, events=upcoming_events)
+    sections = _get_sections_for_page("index")
+    return render_template(
+        "index.html",
+        settings=settings,
+        events=upcoming_events,
+        sections=sections,
+    )
 
 
 @main_bp.route("/about")
 def about():
     settings = Settings.query.first()
-    return render_template("about.html", settings=settings)
+    sections = _get_sections_for_page("about")
+    return render_template("about.html", settings=settings, sections=sections)
 
 
 @main_bp.route("/contact", methods=["GET", "POST"])
@@ -77,34 +99,84 @@ def contact():
 def appointment():
     form = AppointmentForm()
     settings = Settings.query.first()
+    slot_config = get_slot_config()
 
     if form.validate_on_submit():
-        new_appointment = Appointment(
-            name=form.name.data,
-            email=form.email.data,
-            phone=form.phone.data,
-            date=form.date.data,
-            time=form.time.data,
-            reason=form.reason.data,
-            status="pending",
-        )
-
         try:
-            db.session.add(new_appointment)
-            db.session.commit()
-
-            # Send email notification functionality would go here
-
+            appt = create_pending_appointment(
+                name=form.name.data,
+                email=form.email.data,
+                phone=form.phone.data,
+                date_s=form.date.data.strftime("%Y-%m-%d"),
+                time_s=form.time.data.strftime("%H:%M"),
+                reason=form.reason.data,
+            )
             flash(
-                "Consulta agendada com sucesso! Você receberá uma confirmação por email.",
+                "Consulta agendada com sucesso! Voce recebera uma confirmacao por email.",
                 "success",
             )
-            return redirect(url_for("main_bp.index"))
+            return redirect(url_for("main_bp.appointment_manage", token=appt.manage_token))
         except Exception as e:
             db.session.rollback()
-            flash(f"Ocorreu um erro ao agendar sua consulta: {str(e)}", "danger")
+            form.time.errors.append(str(e))
 
-    return render_template("appointment.html", form=form, settings=settings)
+    return render_template(
+        "appointment.html",
+        form=form,
+        settings=settings,
+        slot_config=slot_config,
+    )
+
+
+@main_bp.route("/appointment/manage/<token>", methods=["GET", "POST"])
+def appointment_manage(token):
+    settings = Settings.query.first()
+    slot_config = get_slot_config()
+    appointment_item = Appointment.query.filter_by(manage_token=token).first_or_404()
+    reschedule_form = RescheduleForm()
+    cancel_form = CancelAppointmentForm()
+
+    if request.method == "POST":
+        action = (request.form.get("action") or "").strip()
+        if action == "cancel" and cancel_form.validate_on_submit():
+            if appointment_item.status not in ("cancelled", "canceled"):
+                appointment_item.status = "cancelled"
+                appointment_item.cancelled_at = datetime.utcnow()
+                db.session.commit()
+                cancel_appointment_event(appointment_item)
+                flash("Agendamento cancelado com sucesso.", "success")
+            else:
+                flash("Agendamento ja esta cancelado.", "info")
+            return redirect(url_for("main_bp.appointment_manage", token=token))
+
+        if action == "reschedule" and reschedule_form.validate_on_submit():
+            new_day = reschedule_form.date.data
+            new_time = reschedule_form.time.data
+            if appointment_item.status in ("cancelled", "canceled"):
+                flash("Agendamento cancelado nao pode ser reagendado.", "warning")
+            elif datetime.combine(new_day, new_time) < datetime.now():
+                reschedule_form.time.errors.append("Data e horario nao podem ser no passado.")
+            elif not is_slot_available(new_day, new_time, exclude_id=appointment_item.id):
+                reschedule_form.time.errors.append("Horario indisponivel.")
+            else:
+                appointment_item.date = new_day
+                appointment_item.time = new_time
+                appointment_item.status = "pending"
+                appointment_item.rescheduled_at = datetime.utcnow()
+                appointment_item.reminder_sent_at = None
+                db.session.commit()
+                upsert_appointment_event(appointment_item)
+                flash("Agendamento reagendado com sucesso.", "success")
+                return redirect(url_for("main_bp.appointment_manage", token=token))
+
+    return render_template(
+        "appointment_manage.html",
+        appointment=appointment_item,
+        reschedule_form=reschedule_form,
+        cancel_form=cancel_form,
+        settings=settings,
+        slot_config=slot_config,
+    )
 
 
 @main_bp.route("/events")

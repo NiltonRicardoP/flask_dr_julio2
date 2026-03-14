@@ -1,0 +1,95 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Paciente{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Paciente</h1>
+    <div>
+        <a href="{{ url_for('admin_bp.edit_patient', patient_id=patient.id) }}" class="btn btn-outline-primary me-2">Editar</a>
+        <a href="{{ url_for('admin_bp.patients') }}" class="btn btn-secondary">Voltar</a>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <h5 class="mb-3">Dados</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Nome:</strong> {{ patient.name }}</p>
+                <p><strong>Email:</strong> {{ patient.email or '-' }}</p>
+                <p><strong>Telefone:</strong> {{ patient.phone or '-' }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Nascimento:</strong> {% if patient.birth_date %}{{ patient.birth_date.strftime('%d/%m/%Y') }}{% else %}-{% endif %}</p>
+                <p><strong>Criado:</strong> {{ patient.created_at.strftime('%d/%m/%Y') }}</p>
+            </div>
+        </div>
+        {% if patient.notes %}
+            <hr>
+            <p><strong>Observacoes:</strong></p>
+            <p class="mb-0">{{ patient.notes }}</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-body">
+                <h5 class="mb-3">Nova Nota</h5>
+                <form method="POST">
+                    {{ note_form.csrf_token }}
+                    <div class="mb-3">
+                        <label class="form-label">Titulo</label>
+                        {{ note_form.title(class="form-control") }}
+                        {% if note_form.title.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in note_form.title.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Conteudo</label>
+                        {{ note_form.content(class="form-control", rows="5") }}
+                        {% if note_form.content.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in note_form.content.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {{ note_form.submit(class="btn btn-primary") }}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-body">
+                <h5 class="mb-3">Notas</h5>
+                {% if patient.notes_items %}
+                    <div class="list-group">
+                        {% for note in patient.notes_items %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ note.title or 'Nota' }}</h6>
+                                        <small class="text-muted">{{ note.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                                    </div>
+                                    <form method="POST" action="{{ url_for('admin_bp.delete_patient_note', patient_id=patient.id, note_id=note.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Deseja excluir esta nota?');">Excluir</button>
+                                    </form>
+                                </div>
+                                <p class="mb-0 mt-2">{{ note.content }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="mb-0">Nenhuma nota cadastrada.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

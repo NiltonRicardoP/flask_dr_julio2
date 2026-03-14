@@ -7,7 +7,12 @@
         
         <!-- Main Content -->
 
-            <h1 class="mb-4">Gerenciar Agendamentos</h1>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">Gerenciar Agendamentos</h1>
+                <a class="btn btn-primary" href="{{ url_for('admin_bp.add_appointment') }}">
+                    <i class="fas fa-plus"></i> Novo Agendamento
+                </a>
+            </div>
             
             <!-- Filter Options -->
             <div class="card shadow mb-4">

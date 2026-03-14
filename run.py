@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
-from app import app
 import os
 
-if __name__ == '__main__':
-    # Ensure upload directory exists
-    uploads_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
-    if not os.path.exists(uploads_dir):
-        os.makedirs(uploads_dir)
-    courses_dir = os.path.join(uploads_dir, 'courses')
-    if not os.path.exists(courses_dir):
-        os.makedirs(courses_dir)
-        
-    # Run the application
-    app.run(debug=True, host='0.0.0.0', port=5000)
+from app import create_app
+
+
+app = create_app()
+
+
+if __name__ == "__main__":
+    host = os.getenv("FLASK_RUN_HOST", "0.0.0.0")
+    port = int(os.getenv("FLASK_RUN_PORT", 5000))
+    app.run(debug=app.config.get("DEBUG", False), host=host, port=port)

@@ -289,6 +289,13 @@ body.dark-theme {
   padding: 20px;
 }
 
+.card-title {
+  color: #fff;
+  font-size: 1.2rem;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+}
+
 .event-card .card-title {
   color: #ffffff;
   font-size: 1.2rem;
@@ -446,4 +453,74 @@ body.dark-theme {
     font-size: 0.9rem;
     margin: 5px;
   }
+}
+
+/* =========================
+   Course Cards (padrão fixo)
+   ========================= */
+.course-card {
+  background-color: #1e293b; /* igual ao tema */
+  border: none;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.course-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Área da imagem com proporção fixa (padroniza a altura) */
+.course-image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;   /* mantém 16:9 em todos os cards */
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Fallback para navegadores sem suporte a aspect-ratio */
+@supports not (aspect-ratio: 16 / 9) {
+  .course-image-wrapper { height: 200px; }
+}
+
+.course-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;      /* cobre toda a área sem distorcer */
+  object-position: center;
+  display: block;
+}
+
+/* Placeholder quando não houver imagem */
+.course-image-wrapper.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.course-image-placeholder {
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+/* Título com clamp para evitar variações de altura */
+.course-title {
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1.25;
+  margin-bottom: 0.75rem;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;       /* limite de 2 linhas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(1.25em * 2); /* reserva espaço p/ 2 linhas */
+}
+
+/* Opcional: ajuste fino do parágrafo para manter consistência */
+.course-card .card-body p {
+  color: #cbd5e1;
+  margin-bottom: 0.5rem;
 }

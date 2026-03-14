@@ -1,0 +1,95 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1 class="mb-4">{{ title }}</h1>
+
+<div class="card shadow">
+    <div class="card-body">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.page.label(class="form-label") }}
+                    {{ form.page(class="form-control", placeholder="index ou about") }}
+                    {% if form.page.errors %}
+                        <div class="text-danger">
+                            {% for error in form.page.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.slug.label(class="form-label") }}
+                    {{ form.slug(class="form-control", placeholder="index-hero") }}
+                    {% if form.slug.errors %}
+                        <div class="text-danger">
+                            {% for error in form.slug.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.title.label(class="form-label") }}
+                    {{ form.title(class="form-control", rows=2) }}
+                    {% if form.title.errors %}
+                        <div class="text-danger">
+                            {% for error in form.title.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.subtitle.label(class="form-label") }}
+                    {{ form.subtitle(class="form-control") }}
+                    {% if form.subtitle.errors %}
+                        <div class="text-danger">
+                            {% for error in form.subtitle.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    {{ form.sort_order.label(class="form-label") }}
+                    {{ form.sort_order(class="form-control", placeholder="0") }}
+                    {% if form.sort_order.errors %}
+                        <div class="text-danger">
+                            {% for error in form.sort_order.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-3 mb-3 d-flex align-items-end">
+                    <div class="form-check">
+                        {{ form.is_active(class="form-check-input") }}
+                        {{ form.is_active.label(class="form-check-label") }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>Sugestoes de slug:</strong>
+                index-hero, index-about, index-services, about-areas.
+                <br>
+                index-hero usa apenas Titulo/Subtitulo (itens nao aparecem).
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('admin_bp.site_sections') }}" class="btn btn-secondary">Cancelar</a>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

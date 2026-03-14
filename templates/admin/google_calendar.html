@@ -1,0 +1,220 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Google Agenda{% endblock %}
+{% block page_title %}Google Agenda{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card shadow h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Status</h5>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <strong>Sincronizacao:</strong>
+                        {% if settings.google_sync_enabled %}
+                            <span class="badge bg-success">Ativa</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inativa</span>
+                        {% endif %}
+                    </li>
+                    <li class="mb-2">
+                        <strong>Credenciais:</strong>
+                        {% if status.creds_exists %}
+                            <span class="badge bg-success">OK</span>
+                            <div class="text-muted small">{{ status.creds_display or 'arquivo configurado' }}</div>
+                        {% else %}
+                            <span class="badge bg-danger">Nao encontrado</span>
+                            <div class="text-muted small">Defina GOOGLE_CREDENTIALS_FILE no .env</div>
+                        {% endif %}
+                    </li>
+                    <li class="mb-2">
+                        <strong>Agenda:</strong>
+                        {% if status.calendar_id %}
+                            <span class="badge bg-success">Definida</span>
+                            <div class="text-muted small">Fonte: {{ status.calendar_source }}</div>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Nao definida</span>
+                        {% endif %}
+                    </li>
+                    {% if status.service_email %}
+                        <li class="mb-2">
+                            <strong>Service account:</strong>
+                            <div class="text-muted small">{{ status.service_email }}</div>
+                        </li>
+                    {% endif %}
+                    <li class="mb-2">
+                        <strong>Fuso:</strong> {{ status.tz }}
+                    </li>
+                    <li class="mb-2">
+                        <strong>Duracao:</strong> {{ status.duration }} min
+                    </li>
+                    <li class="mb-2">
+                        <strong>Intervalo sync:</strong> {{ status.min_interval }} min
+                    </li>
+                    <li class="mb-2">
+                        <strong>Ultima sync:</strong>
+                        {% if settings.google_sync_last_at %}
+                            {{ settings.google_sync_last_at.strftime('%d/%m/%Y %H:%M') }}
+                        {% else %}
+                            Nunca
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Configuracoes</h5>
+                <form method="POST" action="{{ url_for('admin_bp.settings_google_calendar') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            {{ form.google_calendar_id.label(class="form-label") }}
+                            {{ form.google_calendar_id(class="form-control", placeholder="ID da agenda ou email") }}
+                            {% if form.google_calendar_id.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.google_calendar_id.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3 d-flex align-items-end">
+                            <div class="form-check">
+                                {{ form.google_sync_enabled(class="form-check-input") }}
+                                {{ form.google_sync_enabled.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.google_attendee_emails.label(class="form-label") }}
+                        {{ form.google_attendee_emails(class="form-control", rows=3, placeholder="email1@exemplo.com, email2@exemplo.com") }}
+                        {% if form.google_attendee_emails.errors %}
+                            <div class="text-danger">
+                                {% for error in form.google_attendee_emails.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            Separe por virgula ou uma por linha. Convites exigem Google Workspace com delegacao.
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between mt-3">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <div class="text-muted small">
+                            Compartilhe a agenda com o e-mail do service account.
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-6">
+        <div class="card shadow h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Acoes de sincronizacao</h5>
+                <p class="text-muted small mb-3">
+                    Sincronizar agora busca alteracoes do Google para o sistema. Reenviar eventos atualiza os
+                    agendamentos do sistema na agenda do Google.
+                </p>
+                <div class="d-flex flex-column gap-3">
+                    <form id="google-sync-form" method="POST" action="{{ url_for('admin_bp.google_calendar_sync') }}">
+                        {{ sync_form.csrf_token }}
+                        {{ sync_form.submit(class="btn btn-outline-primary w-100") }}
+                    </form>
+
+                    <form id="google-resync-form" method="POST" action="{{ url_for('admin_bp.google_calendar_resync') }}">
+                        {{ resync_form.csrf_token }}
+                        <label class="form-label">{{ resync_form.days.label.text }}</label>
+                        <div class="input-group">
+                            {{ resync_form.days(class="form-control", min="1", max="180") }}
+                            <button class="btn btn-outline-primary" type="submit">Reenviar eventos</button>
+                        </div>
+                        {% if resync_form.days.errors %}
+                            <div class="text-danger">
+                                {% for error in resync_form.days.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow h-100">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title mb-3">Teste rapido</h5>
+                <p class="text-muted small">
+                    Cria um agendamento de teste no proximo horario disponivel para validar a criacao do evento
+                    na agenda do Google.
+                </p>
+                <form id="google-test-form" method="POST" action="{{ url_for('admin_bp.google_calendar_test') }}" class="mt-auto">
+                    {{ test_form.csrf_token }}
+                    {{ test_form.submit(class="btn btn-outline-success w-100") }}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mt-4">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="card-title mb-0">Diagnostico rapido</h5>
+            <div class="text-muted small">
+                Sincronizados: {{ sync_synced }} / {{ sync_total }} | Pendentes: {{ sync_unsynced }}
+            </div>
+        </div>
+
+        {% if upcoming_appointments %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Paciente</th>
+                            <th>Data</th>
+                            <th>Horario</th>
+                            <th>Status</th>
+                            <th>Google</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in upcoming_appointments %}
+                            <tr>
+                                <td>{{ appointment.name }}</td>
+                                <td>{{ appointment.date.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                                <td>{{ appointment.status }}</td>
+                                <td>
+                                    {% if appointment.google_event_id %}
+                                        <span class="badge bg-success">OK</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Pendente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info mb-0">
+                Nenhum agendamento futuro encontrado.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
