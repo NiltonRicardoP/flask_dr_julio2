@@ -5,13 +5,28 @@
 {% block body_class %}dark-theme{% endblock %}
 
 {% block content %}
+{% set hero_section = sections['index-hero'] if sections and 'index-hero' in sections else None %}
+{% set about_section = sections['index-about'] if sections and 'index-about' in sections else None %}
+{% set services_section = sections['index-services'] if sections and 'index-services' in sections else None %}
 <section class="hero-dark">
     <div class="container">
         <div class="row align-items-center">
             <!-- Coluna de texto -->
             <div class="col-md-6">
-                <h1 class="display-4">DR. JULIO<br>VASCONCELOS</h1>
-                <p class="lead">Neuropsicologia</p>
+                <h1 class="display-4">
+                    {% if hero_section and hero_section.title %}
+                        {{ hero_section.title|replace('\n', '<br>')|safe }}
+                    {% else %}
+                        DR. JULIO<br>VASCONCELOS
+                    {% endif %}
+                </h1>
+                <p class="lead">
+                    {% if hero_section and hero_section.subtitle %}
+                        {{ hero_section.subtitle }}
+                    {% else %}
+                        Neuropsicologia
+                    {% endif %}
+                </p>
 
                 <!-- Botões para DESKTOP/TABLET (some no mobile) -->
                 <div class="d-none d-md-flex gap-2 mt-3">
@@ -40,9 +55,34 @@
 
 <section class="about-section py-5">
     <div class="container">
-        <h2 class="text-center mb-5">Sobre</h2>
+        <h2 class="text-center mb-5">
+            {% if about_section and about_section.title %}
+                {{ about_section.title }}
+            {% else %}
+                Sobre
+            {% endif %}
+        </h2>
 
+        {% if about_section and about_section.items %}
         <div class="row">
+            {% for item in about_section.items if item.is_active %}
+            <div class="col-md-3 mb-4">
+                <div class="info-card">
+                    <div class="icon-container">
+                        {% if item.icon %}
+                            <i class="{{ item.icon }}"></i>
+                        {% else %}
+                            <i class="fas fa-circle"></i>
+                        {% endif %}
+                    </div>
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.body|default('')|replace('\n', '<br>')|safe }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+<div class="row">
             <div class="col-md-3 mb-4">
                 <div class="info-card">
                     <div class="icon-container">
@@ -83,14 +123,40 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 </section>
 
 <section class="services-section py-5">
     <div class="container">
-        <h2 class="text-center mb-5">Serviços</h2>
+        <h2 class="text-center mb-5">
+            {% if services_section and services_section.title %}
+                {{ services_section.title }}
+            {% else %}
+                Servicos
+            {% endif %}
+        </h2>
 
+        {% if services_section and services_section.items %}
         <div class="row">
+            {% for item in services_section.items if item.is_active %}
+            <div class="col-md-4 mb-4">
+                <div class="card service-card h-100">
+                    <div class="card-body text-center">
+                        {% if item.icon %}
+                            <i class="{{ item.icon }} fa-3x text-primary mb-3"></i>
+                        {% else %}
+                            <i class="fas fa-circle fa-3x text-primary mb-3"></i>
+                        {% endif %}
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.body|default('')|replace('\n', '<br>')|safe }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+<div class="row">
             <div class="col-md-4 mb-4">
                 <div class="card service-card h-100">
                     <div class="card-body text-center">
@@ -121,6 +187,8 @@
                 </div>
             </div>
         </div>
+
+        {% endif %}
 
         <div class="text-center mt-4">
             <a href="{{ url_for('main_bp.appointment') }}" class="btn btn-primary btn-lg">Agende sua Consulta</a>

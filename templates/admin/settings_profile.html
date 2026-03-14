@@ -1,0 +1,54 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Informações Profissionais{% endblock %}
+{% block page_title %}Informações Profissionais{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('admin_bp.settings_profile') }}">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                {{ form.about_text.label(class="form-label") }}
+                {{ form.about_text(class="form-control", rows=6) }}
+                {% if form.about_text.errors %}
+                    <div class="text-danger">
+                        {% for error in form.about_text.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.academic_background.label(class="form-label") }}
+                {{ form.academic_background(class="form-control", rows=4) }}
+                {% if form.academic_background.errors %}
+                    <div class="text-danger">
+                        {% for error in form.academic_background.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.professional_experience.label(class="form-label") }}
+                {{ form.professional_experience(class="form-control", rows=4) }}
+                {% if form.professional_experience.errors %}
+                    <div class="text-danger">
+                        {% for error in form.professional_experience.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="text-center mt-4">
+                {{ form.submit(class="btn btn-primary btn-lg") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

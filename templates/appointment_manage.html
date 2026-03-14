@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Agendamento{% endblock %}
+
+{% block body_class %}dark-theme{% endblock %}
+
+{% block content %}
+{% set work_start = slot_config.work_start if slot_config else '08:00' %}
+{% set last_slot = slot_config.last_slot if slot_config else '16:30' %}
+{% set step = slot_config.step if slot_config else 1800 %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-5">
+                    <h1 class="display-6 text-white mb-2">Gerenciar Agendamento</h1>
+                    <p class="lead text-light">Acompanhe ou altere o seu horario.</p>
+                </div>
+
+                <div class="card bg-dark-blue shadow-lg border-0 rounded-lg mb-4">
+                    <div class="card-body p-4">
+                        <h4 class="text-white mb-3">Detalhes</h4>
+                        <ul class="list-unstyled text-light mb-0">
+                            <li><strong>Nome:</strong> {{ appointment.name }}</li>
+                            <li><strong>Email:</strong> {{ appointment.email or 'n/d' }}</li>
+                            <li><strong>Telefone:</strong> {{ appointment.phone }}</li>
+                            <li><strong>Data:</strong> {{ appointment.date.strftime('%d/%m/%Y') }}</li>
+                            <li><strong>Horario:</strong> {{ appointment.time.strftime('%H:%M') }}</li>
+                            <li><strong>Status:</strong> {{ appointment.status }}</li>
+                        </ul>
+                    </div>
+                </div>
+
+                {% if appointment.status in ['cancelled', 'canceled'] %}
+                    <div class="alert alert-warning">Este agendamento esta cancelado.</div>
+                {% else %}
+                <div class="row">
+                    <div class="col-md-7 mb-4">
+                        <div class="card bg-dark-blue shadow border-0 rounded-lg h-100">
+                            <div class="card-body p-4">
+                                <h5 class="text-white mb-3">Reagendar</h5>
+                                <form method="POST" action="{{ url_for('main_bp.appointment_manage', token=appointment.manage_token) }}">
+                                    {{ reschedule_form.csrf_token }}
+                                    <input type="hidden" name="action" value="reschedule">
+
+                                    <div class="mb-3">
+                                        <label for="date" class="form-label text-light mb-2">Data</label>
+                                        {{ reschedule_form.date(class="form-control bg-darker text-white", id="date", type="date") }}
+                                        {% if reschedule_form.date.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in reschedule_form.date.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="time" class="form-label text-light mb-2">Horario</label>
+                                        {{ reschedule_form.time(class="form-control bg-darker text-white", id="time", type="time", min=work_start, max=last_slot, step=step) }}
+                                        {% if reschedule_form.time.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {% for error in reschedule_form.time.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="d-grid">
+                                        {{ reschedule_form.submit(class="btn btn-primary") }}
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5 mb-4">
+                        <div class="card bg-dark-blue shadow border-0 rounded-lg h-100">
+                            <div class="card-body p-4 d-flex flex-column">
+                                <h5 class="text-white mb-3">Cancelar</h5>
+                                <p class="text-light">Se nao puder comparecer, cancele aqui.</p>
+                                <form method="POST" action="{{ url_for('main_bp.appointment_manage', token=appointment.manage_token) }}" class="mt-auto">
+                                    {{ cancel_form.csrf_token }}
+                                    <input type="hidden" name="action" value="cancel">
+                                    <div class="d-grid">
+                                        {{ cancel_form.submit(class="btn btn-outline-danger") }}
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('date');
+        if (dateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.setAttribute('min', today);
+        }
+    });
+</script>
+{% endblock %}

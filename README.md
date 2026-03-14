@@ -32,6 +32,27 @@ Isso criará a pasta `static/uploads` caso não exista e rodará o servidor em `
 
 Para produção é possível utilizar o `Procfile` com Gunicorn. O arquivo `runtime.txt` define a versão do Python.
 
+### Execução em produção
+
+Para subir em produção, defina pelo menos:
+
+- `APP_ENV=production`
+- `SECRET_KEY` com valor forte
+- `DATABASE_URL`
+- `ADMIN_PASSWORD` para o script `create_admin.py`
+
+Opcionalmente:
+
+- `HEALTHCHECK_TOKEN` para liberar detalhes do endpoint `/api/health/db`
+- `ADMIN_API_KEY` para os endpoints administrativos em `/api/appointments`
+- `ENABLE_DEBUG_ROUTES=false` para manter rotas de debug desabilitadas
+
+Com isso, a aplicação pode ser iniciada com Gunicorn:
+
+```bash
+gunicorn app:app
+```
+
 ### Migrações
 
 

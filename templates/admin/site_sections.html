@@ -1,0 +1,71 @@
+{% extends "admin/base.html" %}
+{% block title %}Secoes do Site{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-1">Secoes do Site</h1>
+        <small class="text-muted">Edite os textos do index e about por aqui.</small>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="POST" action="{{ url_for('admin_bp.seed_site_sections') }}">
+            {{ seed_form.csrf_token }}
+            {{ seed_form.submit(class="btn btn-outline-secondary") }}
+        </form>
+        <a href="{{ url_for('admin_bp.add_site_section') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nova Secao
+        </a>
+    </div>
+</div>
+<div class="card shadow">
+    <div class="card-body">
+        <div class="alert alert-info mb-4">
+            <strong>Slugs usados no site:</strong>
+            index-hero (titulo/subtitulo), index-about, index-services, about-areas.
+        </div>
+        {% if sections %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Pagina</th>
+                        <th>Slug</th>
+                        <th>Titulo</th>
+                        <th>Ordem</th>
+                        <th>Status</th>
+                        <th>Itens</th>
+                        <th>Acoes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for section in sections %}
+                    <tr>
+                        <td>{{ section.page }}</td>
+                        <td>{{ section.slug }}</td>
+                        <td>{{ section.title or '-' }}</td>
+                        <td>{{ section.sort_order or 0 }}</td>
+                        <td>
+                            {% if section.is_active %}
+                                <span class="badge bg-success">Ativa</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inativa</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ section.items|length }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_bp.site_section_items', section_id=section.id) }}" class="btn btn-sm btn-outline-secondary me-1">Itens</a>
+                            <a href="{{ url_for('admin_bp.edit_site_section', id=section.id) }}" class="btn btn-sm btn-outline-primary me-1">Editar</a>
+                            <form method="POST" action="{{ url_for('admin_bp.delete_site_section', id=section.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Deseja excluir esta secao?');">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-center">Nenhuma secao cadastrada.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Imagem{% endblock %}
+{% block page_title %}Imagem do Sobre{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" action="{{ url_for('admin_bp.settings_image') }}">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                {{ form.about_image.label(class="form-label") }}
+                {{ form.about_image(class="form-control") }}
+                <div class="form-text">Envie uma imagem JPG ou PNG para a secao Sobre.</div>
+                {% if form.about_image.errors %}
+                    <div class="text-danger">
+                        {% for error in form.about_image.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if settings and settings.about_image %}
+                <div class="mb-3">
+                    <p class="mb-2">Imagem atual:</p>
+                    <img src="{{ url_for('static', filename='uploads/' + settings.about_image) }}"
+                         alt="Imagem do sobre" class="img-thumbnail" style="max-height: 240px;">
+                </div>
+            {% endif %}
+
+            <div class="text-center mt-4">
+                {{ form.submit(class="btn btn-primary btn-lg") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

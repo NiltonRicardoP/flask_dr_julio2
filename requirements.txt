@@ -16,3 +16,7 @@ Flask-Migrate==4.0.4
 stripe
 requests
 pytest
+PyMySQL>=1.1.0
+google-api-python-client
+google-auth
+google-auth-httplib2

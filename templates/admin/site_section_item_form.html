@@ -1,0 +1,74 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1 class="mb-4">{{ title }}</h1>
+
+<div class="card shadow">
+    <div class="card-body">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                {{ form.title.label(class="form-label") }}
+                {{ form.title(class="form-control") }}
+                {% if form.title.errors %}
+                    <div class="text-danger">
+                        {% for error in form.title.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                {{ form.body.label(class="form-label") }}
+                {{ form.body(class="form-control", rows=5) }}
+                {% if form.body.errors %}
+                    <div class="text-danger">
+                        {% for error in form.body.errors %}
+                            <small>{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.icon.label(class="form-label") }}
+                    {{ form.icon(class="form-control", placeholder="fas fa-brain") }}
+                    <div class="form-text">Use classes do Font Awesome (ex: fas fa-brain).</div>
+                    {% if form.icon.errors %}
+                        <div class="text-danger">
+                            {% for error in form.icon.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-3 mb-3">
+                    {{ form.sort_order.label(class="form-label") }}
+                    {{ form.sort_order(class="form-control", placeholder="0") }}
+                    {% if form.sort_order.errors %}
+                        <div class="text-danger">
+                            {% for error in form.sort_order.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-3 mb-3 d-flex align-items-end">
+                    <div class="form-check">
+                        {{ form.is_active(class="form-check-input") }}
+                        {{ form.is_active.label(class="form-check-label") }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('admin_bp.site_section_items', section_id=section.id) }}" class="btn btn-secondary">Cancelar</a>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

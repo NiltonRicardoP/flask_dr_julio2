@@ -5,6 +5,9 @@
 {% block body_class %}dark-theme{% endblock %}
 
 {% block content %}
+{% set work_start = slot_config.work_start if slot_config else '08:00' %}
+{% set last_slot = slot_config.last_slot if slot_config else '16:30' %}
+{% set step = slot_config.step if slot_config else 1800 %}
 <section class="py-5">
     <div class="container">
         <div class="row justify-content-center">
@@ -81,7 +84,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label for="time" class="form-label text-light mb-2">Horário</label>
-                                    {{ form.time(class="form-control form-control-lg bg-darker text-white", id="time", type="time") }}
+                                    {{ form.time(class="form-control form-control-lg bg-darker text-white", id="time", type="time", min=work_start, max=last_slot, step=step) }}
                                     {% if form.time.errors %}
                                         <div class="invalid-feedback d-block">
                                             {% for error in form.time.errors %}

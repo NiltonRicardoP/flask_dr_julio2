@@ -1,5 +1,6 @@
 from flask_login import UserMixin
 from datetime import datetime
+import secrets
 from werkzeug.security import generate_password_hash, check_password_hash
 from extensions import db
 
@@ -51,16 +52,44 @@ class Event(db.Model):
 class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=True)
     phone = db.Column(db.String(20), nullable=False)
     date = db.Column(db.Date, nullable=False)
     time = db.Column(db.Time, nullable=False)
     reason = db.Column(db.Text)
     status = db.Column(db.String(20), default='pending')
+    manage_token = db.Column(db.String(64), unique=True, index=True)
+    google_event_id = db.Column(db.String(128), index=True)
+    cancelled_at = db.Column(db.DateTime)
+    rescheduled_at = db.Column(db.DateTime)
+    reminder_sent_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def ensure_manage_token(self):
+        if not self.manage_token:
+            self.manage_token = secrets.token_urlsafe(16)
     
     def __repr__(self):
         return f'<Appointment {self.name} - {self.date} {self.time}>'
+
+
+class CalendarEvent(db.Model):
+    __tablename__ = "calendar_event"
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text)
+    start_at = db.Column(db.DateTime, nullable=False)
+    end_at = db.Column(db.DateTime, nullable=False)
+    all_day = db.Column(db.Boolean, default=False)
+    status = db.Column(db.String(20), default="active")
+    source = db.Column(db.String(20), default="system")
+    google_event_id = db.Column(db.String(128), unique=True, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<CalendarEvent {self.title} - {self.start_at}>"
 
 
 class ContactMessage(db.Model):
@@ -74,11 +103,51 @@ class ContactMessage(db.Model):
     def __repr__(self):
         return f'<ContactMessage {self.name}>'
 
+
+class Patient(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120))
+    phone = db.Column(db.String(30))
+    birth_date = db.Column(db.Date)
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    notes_items = db.relationship(
+        'PatientNote',
+        backref='patient',
+        cascade='all, delete-orphan',
+        order_by='PatientNote.created_at.desc()',
+    )
+
+    def __repr__(self):
+        return f'<Patient {self.name}>'
+
+
+class PatientNote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False)
+    title = db.Column(db.String(150))
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<PatientNote {self.id}>'
+
 class Settings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     site_title = db.Column(db.String(100), default='Dr. Julio Vasconcelos')
     contact_email = db.Column(db.String(100))
     contact_phone = db.Column(db.String(20))
+    admin_notify_email = db.Column(db.String(120))
+    mail_server = db.Column(db.String(120))
+    mail_port = db.Column(db.Integer)
+    mail_use_tls = db.Column(db.Boolean, default=True)
+    mail_username = db.Column(db.String(120))
+    mail_password = db.Column(db.String(255))
+    mail_default_sender = db.Column(db.String(255))
     address = db.Column(db.Text)
     about_text = db.Column(db.Text)
     academic_background = db.Column(db.Text)
@@ -87,10 +156,52 @@ class Settings(db.Model):
     social_instagram = db.Column(db.String(255))
     social_youtube = db.Column(db.String(255))
     about_image = db.Column(db.String(255))
+    google_calendar_id = db.Column(db.String(255))
+    google_attendee_emails = db.Column(db.Text)
+    google_sync_enabled = db.Column(db.Boolean, default=False)
+    google_sync_token = db.Column(db.Text)
+    google_sync_last_at = db.Column(db.DateTime)
 
     
     def __repr__(self):
         return f'<Settings {self.site_title}>'
+
+
+class SiteSection(db.Model):
+    __tablename__ = 'site_section'
+
+    id = db.Column(db.Integer, primary_key=True)
+    page = db.Column(db.String(50), nullable=False)
+    slug = db.Column(db.String(60), unique=True, nullable=False)
+    title = db.Column(db.String(150))
+    subtitle = db.Column(db.String(255))
+    is_active = db.Column(db.Boolean, default=True)
+    sort_order = db.Column(db.Integer, default=0)
+
+    items = db.relationship(
+        'SiteSectionItem',
+        backref='section',
+        cascade='all, delete-orphan',
+        order_by='SiteSectionItem.sort_order',
+    )
+
+    def __repr__(self):
+        return f'<SiteSection {self.slug}>'
+
+
+class SiteSectionItem(db.Model):
+    __tablename__ = 'site_section_item'
+
+    id = db.Column(db.Integer, primary_key=True)
+    section_id = db.Column(db.Integer, db.ForeignKey('site_section.id'), nullable=False)
+    title = db.Column(db.String(150), nullable=False)
+    body = db.Column(db.Text)
+    icon = db.Column(db.String(100))
+    is_active = db.Column(db.Boolean, default=True)
+    sort_order = db.Column(db.Integer, default=0)
+
+    def __repr__(self):
+        return f'<SiteSectionItem {self.title}>'
 
 
 class GalleryItem(db.Model):
